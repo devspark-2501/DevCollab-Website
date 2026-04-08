@@ -1,0 +1,48 @@
+'use client'
+
+import { signIn, useSession } from "next-auth/react"
+
+export default function Sign() {
+    const { data: session, status } = useSession();
+
+    if (status === "loading") return null;
+
+    if (session) return null;
+
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-[#0b0f1a] relative overflow-hidden">
+
+            <div className="absolute w-[400px] h-[400px] bg-purple-600 opacity-20 blur-[120px] rounded-full top-[-100px] left-[-100px]" />
+            <div className="absolute w-[400px] h-[400px] bg-blue-500 opacity-20 blur-[120px] rounded-full bottom-[-100px] right-[-100px]" />
+
+            <div className="relative z-10 w-[90%] max-w-md p-8 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-xl">
+
+                <h1 className="text-2xl font-semibold text-white mb-2">
+                    Welcome Back
+                </h1>
+
+                <p className="text-gray-400 text-sm mb-6">
+                    Join the dev community and start sharing your work
+                </p>
+
+                <div className="flex flex-col gap-4">
+
+                    <button 
+                        onClick={() => signIn("github")}
+                        className="w-full py-3 rounded-lg bg-[#111827] border border-white/10 text-white font-medium hover:bg-white/10 transition"
+                    >
+                        Continue with GitHub
+                    </button>
+
+                    <button 
+                        onClick={() => signIn("google")}
+                        className="w-full py-3 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white font-medium hover:opacity-90 transition"
+                    >
+                        Continue with Google
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    )
+}
