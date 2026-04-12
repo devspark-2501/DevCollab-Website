@@ -1,13 +1,42 @@
 'use client'
 
-import { signIn, useSession } from "next-auth/react"
+// export const metadata = {
+//   title: "Dev Collab | Sign in"
+// };
+
+import { signIn, signOut, useSession } from "next-auth/react"
 
 export default function Sign() {
     const { data: session, status } = useSession();
 
-    if (status === "loading") return null;
+    if (status === "loading") {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-[#0b0f1a]">
+                <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+        );
+    }
 
-    if (session) return null;
+    if (status === "authenticated") {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-[#0b0f1a] relative overflow-hidden">
+
+                <div className="absolute w-[400px] h-[400px] bg-purple-600 opacity-20 blur-[120px] rounded-full top-[-100px] left-[-100px]" />
+                <div className="absolute w-[400px] h-[400px] bg-blue-500 opacity-20 blur-[120px] rounded-full bottom-[-100px] right-[-100px]" />
+
+                <div className="relative z-10 w-[90%] max-w-md p-8 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-xl text-center">
+                    <p className="text-white text-lg font-medium mb-2">Signed in as</p>
+                    <p className="text-gray-400 text-sm mb-6">{session.user.email}</p>
+                    <button
+                        onClick={() => signOut()}
+                        className="w-full py-3 rounded-lg bg-red-500/20 border border-red-500/30 text-red-400 font-medium hover:bg-red-500/30 transition"
+                    >
+                        Sign Out
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#0b0f1a] relative overflow-hidden">
@@ -27,14 +56,14 @@ export default function Sign() {
 
                 <div className="flex flex-col gap-4">
 
-                    <button 
+                    <button
                         onClick={() => signIn("github")}
                         className="w-full py-3 rounded-lg bg-[#111827] border border-white/10 text-white font-medium hover:bg-white/10 transition"
                     >
                         Continue with GitHub
                     </button>
 
-                    <button 
+                    <button
                         onClick={() => signIn("google")}
                         className="w-full py-3 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white font-medium hover:opacity-90 transition"
                     >

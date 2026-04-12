@@ -22,7 +22,6 @@ export default function Home() {
           </span>
         </div>
 
-
         <h1 className="text-5xl font-bold leading-tight text-white">
           Code. Share. Get Noticed.<br />
           <span className="bg-gradient-to-r from-purple-400 to-blue-400 text-transparent bg-clip-text">
