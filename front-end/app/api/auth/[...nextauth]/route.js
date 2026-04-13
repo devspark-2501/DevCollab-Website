@@ -30,26 +30,27 @@ const handler = NextAuth({
         const existingUser = await User.findOne({ email: user.email });
 
         if (!existingUser) {
-          // Save new user to MongoDB
+          // New user — save to MongoDB then continue to redirect callback
           await User.create({
             name: user.name,
             email: user.email,
-            // password is required:true in your schema — handle it for OAuth users
             password: "oauth_" + account.provider, // placeholder
           });
           console.log("New user saved to DB:", user.email);
-        } else {
-          console.log("User already exists:", user.email);
+          return true;
         }
 
-        return true; // allow sign in
+        // 👇 Existing user — skip everything, go straight to /Profile
+        console.log("User already exists, redirecting to profile:", user.email);
+        return "/Profile";
+
       } catch (error) {
         console.error("Error saving user to DB:", error);
         return false; // block sign in on error
       }
     },
 
-    // redirect to /profile after login
+    // redirect to /Profile after login (for new users)
     async redirect({ url, baseUrl }) {
       return baseUrl + "/Profile";
     },
