@@ -49,6 +49,11 @@ const handler = NextAuth({
       }
     },
 
+    // redirect to /profile after login
+    async redirect({ url, baseUrl }) {
+      return baseUrl + "/Profile";
+    },
+
     async jwt({ token, user, account }) {
       if (account && user) {
         token.accessToken = account.access_token;

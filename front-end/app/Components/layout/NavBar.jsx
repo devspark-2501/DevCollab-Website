@@ -8,13 +8,15 @@ export const NavBar = () => {
       
       <div className="w-[90%] max-w-6xl px-6 py-1 rounded-xl bg-[#0b0f1a]/80 backdrop-blur-xl border border-white/10 shadow-lg flex items-center justify-between">
 
-        <div className="flex items-center">
-          <img 
-            src="/logo.png" 
-            alt="DevCollab Logo" 
-            className="h-15 w-auto drop-shadow-[0_0_12px_rgba(124,58,237,0.7)]"
-          />
-        </div>
+        <Link href="/">
+          <div className="flex items-center">
+            <img 
+              src="/logo.png" 
+              alt="DevCollab Logo" 
+              className="h-15 w-auto drop-shadow-[0_0_12px_rgba(124,58,237,0.7)]"
+            />
+          </div>
+        </Link>
 
         <div className="hidden md:flex gap-8 text-gray-300 text-sm">
           <a href="#" className="hover:text-white transition">Explore</a>
