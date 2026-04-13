@@ -19,10 +19,13 @@ export const NavBar = () => {
         </Link>
 
         <div className="hidden md:flex gap-8 text-gray-300 text-sm">
+          
           <a href="#" className="hover:text-white transition">Explore</a>
           <a href="#" className="hover:text-white transition">Projects</a>
           <a href="#" className="hover:text-white transition">Community</a>
-          <a href="#" className="hover:text-white transition">Profile</a>
+          <Link href='/Profile'>
+            <p className="hover:text-white transition">Profile</p>
+          </Link>
         </div>
 
         <div className="flex items-center gap-3">
