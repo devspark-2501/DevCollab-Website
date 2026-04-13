@@ -1,7 +1,7 @@
 'use client'
 
 import { signOut } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState } from "react"; // mostly updated
 
 /* ─── Icons ─────────────────────────────────────────── */
 const Icon = {
