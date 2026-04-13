@@ -1,4 +1,4 @@
-import mongoose from mongoose
+import mongoose from "mongoose"
 // make sure mongoose is install !!
 
 export const connectDB = async() => {
