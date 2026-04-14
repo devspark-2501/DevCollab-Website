@@ -5,11 +5,6 @@ import { useEffect, useState } from "react"; // mostly updated
 
 /* ─── Icons ─────────────────────────────────────────── */
 const Icon = {
-  Home: () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
-    </svg>
-  ),
   User: () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
@@ -48,7 +43,6 @@ const Icon = {
 };
 
 const NAV = [
-  { id: "home",     label: "Dashboard",     Icon: Icon.Home    },
   { id: "profile",  label: "Profile",        Icon: Icon.User    },
   { id: "projects", label: "Projects",       Icon: Icon.Folder  },
   { id: "activity", label: "Activity",       Icon: Icon.Grid    },
