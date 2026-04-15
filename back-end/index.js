@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 
+// Home route
 app.use('/', function(req, res) {
     res.send('Node Backend Server'); // you should send a response
 });
