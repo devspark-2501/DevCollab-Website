@@ -1,5 +1,7 @@
 import SessionWrapper from "./Components/essentials/SessionWrapper";
 import { NavBar } from "./Components/layout/NavBar";
+// import "./globals.css";
+
 import "./globals.css";
 
 export const metadata = {
@@ -11,7 +13,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <SessionWrapper>
-          <NavBar />
+          {/* <NavBar /> */}
           {children}
         </SessionWrapper>
       </body>

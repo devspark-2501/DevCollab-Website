@@ -1,224 +1,505 @@
 'use client'
 
+import Link from "next/link";
 import { signOut } from "next-auth/react";
-import { useEffect, useState } from "react"; // mostly updated
+import { useEffect, useState } from "react";
 
 /* ─── Icons ─────────────────────────────────────────── */
-const Icon = {
-  User: () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+const Icons = {
+  Home: () => (
+    <Link href="/">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/>
+      </svg>
+    </Link>
+  ),
+  Post: () => (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
     </svg>
   ),
-  Folder: () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+  People: () => (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
     </svg>
   ),
-  Bell: () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-    </svg>
-  ),
-  Settings: () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+  Code: () => (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
     </svg>
   ),
   LogOut: () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
     </svg>
   ),
-  ChevronRight: () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="9 18 15 12 9 6"/>
+  Email: () => (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
     </svg>
   ),
-  Grid: () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+  Calendar: () => (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+    </svg>
+  ),
+  Shield: () => (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
     </svg>
   ),
 };
 
 const NAV = [
-  { id: "profile",  label: "Profile",        Icon: Icon.User    },
-  { id: "projects", label: "Projects",       Icon: Icon.Folder  },
-  { id: "activity", label: "Activity",       Icon: Icon.Grid    },
-  { id: "settings", label: "Settings",       Icon: Icon.Settings},
+  { id: "home",    label: "Home",    Icon: Icons.Home   },
+  { id: "post",    label: "Post",    Icon: Icons.Post   },
+  { id: "people",  label: "People",  Icon: Icons.People },
+  { id: "code",    label: "Code",    Icon: Icons.Code   },
 ];
 
-/* ─── Sidebar ────────────────────────────────────────── */
+const CSS = `
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .profile-root {
+    min-height: 100vh;
+    display: flex;
+    background: #111318;
+    font-family: 'DM Sans', system-ui, sans-serif;
+    color: #e2e4ec;
+  }
+
+  /* ─── Sidebar ─── */
+  .sidebar {
+    width: 220px;
+    min-width: 220px;
+    display: flex;
+    flex-direction: column;
+    background: #0d0f14;
+    border-right: 1px solid #1e2029;
+    padding: 24px 12px;
+    transition: width 0.25s ease, min-width 0.25s ease;
+    overflow: hidden;
+  }
+  .sidebar.collapsed {
+    width: 60px;
+    min-width: 60px;
+  }
+
+  .nav-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #3a3d4a;
+    padding: 0 10px 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 9px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #5a5f72;
+    font-size: 13.5px;
+    font-weight: 400;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+    overflow: hidden;
+    border: 1px solid transparent;
+    text-decoration: none;
+  }
+  .nav-item:hover {
+    background: #161820;
+    color: #c8cad4;
+  }
+  .nav-item.active {
+    background: #161c2e;
+    color: #8ba4f5;
+    border-color: #1e2a4a;
+    font-weight: 500;
+  }
+
+  .nav-item-icon { flex-shrink: 0; }
+
+  .sidebar-divider {
+    border: none;
+    border-top: 1px solid #1a1c23;
+    margin: 12px 0;
+  }
+
+  .signout-btn {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 9px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #5a3a3a;
+    font-size: 13.5px;
+    font-weight: 400;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+    overflow: hidden;
+    border: 1px solid transparent;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+  }
+  .signout-btn:hover {
+    background: #1c1414;
+    color: #e05a5a;
+    border-color: #2a1818;
+  }
+
+  .toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 1px solid #1e2029;
+    background: transparent;
+    cursor: pointer;
+    color: #3a3d4a;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+  }
+  .toggle-btn:hover { background: #161820; color: #8ba4f5; }
+
+  /* ─── Main ─── */
+  .main {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ─── Cover ─── */
+  .cover {
+    height: 180px;
+    flex-shrink: 0;
+    background: #13161f;
+    border-bottom: 1px solid #1e2029;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(#1e2029 1px, transparent 1px),
+      linear-gradient(90deg, #1e2029 1px, transparent 1px);
+    background-size: 32px 32px;
+    opacity: 0.5;
+  }
+  .cover-fade {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 80px;
+    background: linear-gradient(to bottom, transparent, #111318);
+  }
+
+  /* ─── Content ─── */
+  .content {
+    max-width: 820px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 32px 60px;
+  }
+
+  /* ─── Profile Header ─── */
+  .profile-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-top: -48px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .avatar-wrap { position: relative; }
+
+  .avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    border: 3px solid #111318;
+    outline: 1.5px solid #2a2e3e;
+    object-fit: cover;
+    display: block;
+  }
+  .avatar-fallback {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    border: 3px solid #111318;
+    outline: 1.5px solid #2a2e3e;
+    background: #1a1d28;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+    font-weight: 600;
+    color: #8ba4f5;
+    font-family: 'DM Mono', monospace;
+  }
+  .avatar-status {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #22c55e;
+    border: 2.5px solid #111318;
+  }
+
+  .profile-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    padding-bottom: 6px;
+  }
+  .profile-name {
+    font-size: 22px;
+    font-weight: 600;
+    color: #ebedf5;
+    letter-spacing: -0.4px;
+  }
+  .verified-badge {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #1d2b5c;
+    border: 1px solid #2a3a7a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .profile-email {
+    font-size: 13px;
+    color: #3f4357;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 8px;
+    padding-bottom: 6px;
+  }
+  .btn-primary {
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'DM Sans', inherit;
+    cursor: pointer;
+    background: #1d2b5c;
+    border: 1px solid #2a3a7a;
+    color: #8ba4f5;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .btn-primary:hover { background: #22336e; border-color: #3a4e9a; }
+  .btn-ghost {
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'DM Sans', inherit;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid #1e2029;
+    color: #4a4f62;
+    transition: background 0.15s, color 0.15s;
+  }
+  .btn-ghost:hover { background: #161820; color: #8ba4f5; }
+
+  /* ─── Stats ─── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: #13161f;
+    border: 1px solid #1e2029;
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    transition: border-color 0.15s;
+    cursor: default;
+  }
+  .stat-card:hover { border-color: #2a3060; }
+  .stat-num {
+    font-size: 24px;
+    font-weight: 600;
+    color: #ebedf5;
+    letter-spacing: -0.8px;
+    font-family: 'DM Mono', monospace;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: #2e3244;
+    font-weight: 500;
+    margin-top: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+  }
+
+  /* ─── Two-col ─── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+
+  /* ─── Card ─── */
+  .card {
+    background: #13161f;
+    border: 1px solid #1e2029;
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .card-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #2e3244;
+    margin-bottom: 16px;
+  }
+
+  /* Info rows */
+  .info-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #191b24;
+  }
+  .info-row:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+  .info-icon { color: #3a4470; margin-top: 1px; flex-shrink: 0; }
+  .info-key { font-size: 10.5px; color: #2e3244; margin-bottom: 2px; }
+  .info-val { font-size: 13px; color: #b0b4c8; word-break: break-all; }
+
+  /* Activity empty */
+  .empty-state {
+    text-align: center;
+    padding: 36px 0;
+  }
+  .empty-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #161820;
+    border: 1px solid #1e2029;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 14px;
+    color: #3a4470;
+  }
+  .empty-title { font-size: 14px; font-weight: 500; color: #4a4f62; margin-bottom: 4px; }
+  .empty-sub { font-size: 12px; color: #2e3244; margin-bottom: 16px; }
+  .btn-new {
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'DM Sans', inherit;
+    cursor: pointer;
+    background: #1d2b5c;
+    border: 1px solid #2a3a7a;
+    color: #8ba4f5;
+    transition: background 0.15s;
+  }
+  .btn-new:hover { background: #22336e; }
+
+  /* Anim */
+  .fade-up {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .fade-up.in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+/* ─── Sidebar ─── */
 function Sidebar({ expanded, onToggle, active, onNav }) {
-  const W = expanded ? 240 : 68;
-
-  const itemStyle = (isActive) => ({
-    display: "flex", alignItems: "center", gap: 12,
-    padding: expanded ? "10px 14px" : "10px 0",
-    justifyContent: expanded ? "flex-start" : "center",
-    borderRadius: 10, cursor: "pointer",
-    transition: "background 0.2s, color 0.2s",
-    color: isActive ? "#fff" : "rgba(255,255,255,0.45)",
-    background: isActive ? "rgba(124,58,237,0.18)" : "transparent",
-    border: isActive ? "1px solid rgba(124,58,237,0.3)" : "1px solid transparent",
-    position: "relative", whiteSpace: "nowrap", overflow: "hidden",
-    textDecoration: "none",
-  });
-
   return (
-    <aside style={{
-      width: W, minWidth: W, maxWidth: W,
-      background: "rgba(255,255,255,0.02)",
-      borderRight: "1px solid rgba(255,255,255,0.06)",
-      display: "flex", flexDirection: "column",
-      transition: "width 0.3s cubic-bezier(0.4,0,0.2,1), min-width 0.3s cubic-bezier(0.4,0,0.2,1)",
-      overflow: "hidden", position: "relative", zIndex: 10,
-    }}>
-
-      {/* Logo area */}
-      <div style={{
-        padding: expanded ? "20px 16px 16px" : "20px 0 16px",
-        display: "flex", alignItems: "center",
-        justifyContent: expanded ? "space-between" : "center",
-        borderBottom: "1px solid rgba(255,255,255,0.05)",
-        minHeight: 64,
-      }}>
-        {expanded && (
-          <div style={{ display: "flex", alignItems: "center", gap: 10, overflow: "hidden" }}>
-            <div style={{
-              width: 30, height: 30, borderRadius: 8, flexShrink: 0,
-              background: "linear-gradient(135deg, #7c3aed, #3b82f6)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: "0 0 14px rgba(124,58,237,0.5)",
-            }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-              </svg>
-            </div>
-            <span style={{ fontSize: 15, fontWeight: 700, color: "#fff", letterSpacing: "-0.3px", whiteSpace: "nowrap" }}>
-              DevSpace
-            </span>
-          </div>
-        )}
-        {!expanded && (
-          <div style={{
-            width: 30, height: 30, borderRadius: 8, flexShrink: 0,
-            background: "linear-gradient(135deg, #7c3aed, #3b82f6)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: "0 0 14px rgba(124,58,237,0.5)",
-          }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-            </svg>
-          </div>
-        )}
-
-        {expanded && (
-          <button onClick={onToggle} style={{
-            width: 28, height: 28, borderRadius: 7, border: "1px solid rgba(255,255,255,0.1)",
-            background: "rgba(255,255,255,0.04)", cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            color: "rgba(255,255,255,0.5)", flexShrink: 0,
-            transition: "background 0.2s",
-          }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <polyline points="15 18 9 12 15 6"/>
-            </svg>
-          </button>
-        )}
+    <aside className={`sidebar${expanded ? "" : " collapsed"}`}>
+      {/* Toggle + section label row */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: expanded ? "space-between" : "center", marginBottom: 20 }}>
+        {expanded && <span className="nav-section-label" style={{ marginBottom: 0 }}>Menu</span>}
+        <button className="toggle-btn" onClick={onToggle} aria-label="Toggle sidebar">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            {expanded
+              ? <polyline points="15 18 9 12 15 6"/>
+              : <polyline points="9 18 15 12 9 6"/>}
+          </svg>
+        </button>
       </div>
 
-      {/* Expand button when collapsed */}
-      {!expanded && (
-        <div style={{ padding: "12px 0", display: "flex", justifyContent: "center" }}>
-          <button onClick={onToggle} style={{
-            width: 32, height: 32, borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)",
-            background: "rgba(255,255,255,0.04)", cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            color: "rgba(255,255,255,0.5)",
-          }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <polyline points="9 18 15 12 9 6"/>
-            </svg>
-          </button>
-        </div>
-      )}
-
-      {/* Nav */}
-      <nav style={{ flex: 1, padding: expanded ? "12px 10px" : "12px 8px", display: "flex", flexDirection: "column", gap: 2 }}>
-        {expanded && (
-          <p style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.2)", letterSpacing: "0.1em", textTransform: "uppercase", padding: "4px 6px 8px", margin: 0 }}>
-            Navigation
-          </p>
-        )}
-        {NAV.map(({ id, label, Icon: NavIcon }) => (
+      {/* Nav items */}
+      <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+        {NAV.map(({ id, label, Icon }) => (
           <div
             key={id}
+            className={`nav-item${active === id ? " active" : ""}`}
             onClick={() => onNav(id)}
-            style={itemStyle(active === id)}
-            onMouseEnter={e => { if (active !== id) { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.color = "rgba(255,255,255,0.75)"; }}}
-            onMouseLeave={e => { if (active !== id) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.45)"; }}}
+            style={{ justifyContent: expanded ? "flex-start" : "center" }}
           >
-            <span style={{ flexShrink: 0 }}><NavIcon /></span>
-            {expanded && (
-              <span style={{ fontSize: 14, fontWeight: active === id ? 600 : 400, transition: "opacity 0.2s" }}>
-                {label}
-              </span>
-            )}
-            {expanded && active === id && (
-              <span style={{ marginLeft: "auto" }}><Icon.ChevronRight /></span>
-            )}
+            <span className="nav-item-icon"><Icon /></span>
+            {expanded && <span>{label}</span>}
           </div>
         ))}
       </nav>
 
-      {/* Bottom: Sign Out */}
-      <div style={{ padding: expanded ? "12px 10px 20px" : "12px 8px 20px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-        {expanded && (
-          <p style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.2)", letterSpacing: "0.1em", textTransform: "uppercase", padding: "0 6px 8px", margin: 0 }}>
-            Account
-          </p>
-        )}
-        <div
+      {/* Sign out */}
+      <div>
+        <hr className="sidebar-divider" />
+        <button
+          className="signout-btn"
           onClick={() => signOut({ callbackUrl: "/login" })}
-          style={{
-            display: "flex", alignItems: "center", gap: 12,
-            padding: expanded ? "10px 14px" : "10px 0",
-            justifyContent: expanded ? "flex-start" : "center",
-            borderRadius: 10, cursor: "pointer",
-            color: "rgba(239,68,68,0.7)",
-            border: "1px solid transparent",
-            transition: "background 0.2s, color 0.2s, border-color 0.2s",
-            whiteSpace: "nowrap", overflow: "hidden",
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.background = "rgba(239,68,68,0.1)";
-            e.currentTarget.style.color = "rgba(239,68,68,1)";
-            e.currentTarget.style.borderColor = "rgba(239,68,68,0.2)";
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = "transparent";
-            e.currentTarget.style.color = "rgba(239,68,68,0.7)";
-            e.currentTarget.style.borderColor = "transparent";
-          }}
+          style={{ justifyContent: expanded ? "flex-start" : "center" }}
         >
-          <span style={{ flexShrink: 0 }}><Icon.LogOut /></span>
-          {expanded && <span style={{ fontSize: 14, fontWeight: 500 }}>Sign Out</span>}
-        </div>
+          <span style={{ flexShrink: 0 }}><Icons.LogOut /></span>
+          {expanded && <span>Sign out</span>}
+        </button>
       </div>
     </aside>
   );
 }
 
-/* ─── Profile Page ───────────────────────────────────── */
-export default function ProfileLayout({ name = "Alex Johnson", email = "alex@devspace.io", image = null, createdAt = new Date().toISOString(), provider = "github" }) {
+/* ─── Main Component ─── */
+export default function ProfileLayout({
+  name = "Alex Johnson",
+  email = "alex@devspace.io",
+  image = null,
+  createdAt = new Date().toISOString(),
+  provider = "github",
+}) {
   const [mounted, setMounted] = useState(false);
-  const [sidebarExpanded, setSidebarExpanded] = useState(false);
-  const [activeNav, setActiveNav] = useState("profile");
+  const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const [activeNav, setActiveNav] = useState("home");
 
   useEffect(() => {
-    const t = setTimeout(() => setMounted(true), 60);
+    const t = setTimeout(() => setMounted(true), 80);
     return () => clearTimeout(t);
   }, []);
 
@@ -230,188 +511,114 @@ export default function ProfileLayout({ name = "Alex Johnson", email = "alex@dev
     : "Credentials";
 
   return (
-    <div style={{
-      minHeight: "100vh", display: "flex",
-      background: "#0b0f1a",
-      fontFamily: "'Inter', system-ui, sans-serif",
-      position: "relative", overflow: "hidden",
-    }}>
-      {/* Ambient glows */}
-      <div style={{ position: "fixed", top: -200, left: 60, width: 500, height: 500, background: "radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
-      <div style={{ position: "fixed", bottom: -200, right: -100, width: 500, height: 500, background: "radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
+    <>
+      <style>{CSS}</style>
+      <div className="profile-root">
+        <Sidebar
+          expanded={sidebarExpanded}
+          onToggle={() => setSidebarExpanded(v => !v)}
+          active={activeNav}
+          onNav={setActiveNav}
+        />
 
-      {/* Sidebar */}
-      <Sidebar
-        expanded={sidebarExpanded}
-        onToggle={() => setSidebarExpanded(v => !v)}
-        active={activeNav}
-        onNav={setActiveNav}
-      />
+        <div className="main">
+          {/* Cover */}
+          <div className="cover">
+            <div className="cover-grid" />
+            <div className="cover-fade" />
+          </div>
 
-      {/* Main area */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "auto", position: "relative", zIndex: 1 }}>
+          {/* Content */}
+          <div className="content">
 
-        {/* Cover banner */}
-        <div style={{
-          position: "relative", width: "100%", height: 220, overflow: "hidden", flexShrink: 0,
-          background: "linear-gradient(135deg, #1a0533 0%, #0f172a 40%, #0c1a3a 100%)",
-          opacity: mounted ? 1 : 0, transition: "opacity 0.7s ease",
-        }}>
-          <div style={{
-            position: "absolute", inset: 0,
-            backgroundImage: "linear-gradient(rgba(139,92,246,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(139,92,246,0.07) 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-          }} />
-          <div style={{ position: "absolute", top: -60, left: "20%", width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle, rgba(139,92,246,0.22) 0%, transparent 65%)" }} />
-          <div style={{ position: "absolute", top: -40, right: "15%", width: 250, height: 250, borderRadius: "50%", background: "radial-gradient(circle, rgba(59,130,246,0.18) 0%, transparent 65%)" }} />
-          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 80, background: "linear-gradient(to bottom, transparent, #0b0f1a)" }} />
-        </div>
-
-        {/* Content */}
-        <div style={{ maxWidth: 860, width: "100%", margin: "0 auto", padding: "0 28px 60px", flex: 1 }}>
-
-          {/* Profile header */}
-          <div style={{
-            display: "flex", alignItems: "flex-end", justifyContent: "space-between",
-            marginTop: -52, marginBottom: 28, flexWrap: "wrap", gap: 16,
-            opacity: mounted ? 1 : 0,
-            transform: mounted ? "translateY(0)" : "translateY(20px)",
-            transition: "opacity 0.6s ease 0.1s, transform 0.6s ease 0.1s",
-          }}>
-            <div style={{ display: "flex", alignItems: "flex-end", gap: 18 }}>
-              <div style={{ position: "relative" }}>
-                {image ? (
-                  <img src={image} alt="avatar" style={{
-                    width: 104, height: 104, borderRadius: "50%",
-                    border: "4px solid #0b0f1a",
-                    outline: "2px solid rgba(139,92,246,0.5)",
-                    objectFit: "cover", display: "block",
-                    boxShadow: "0 0 28px rgba(139,92,246,0.3)",
-                  }} />
-                ) : (
-                  <div style={{
-                    width: 104, height: 104, borderRadius: "50%",
-                    border: "4px solid #0b0f1a",
-                    outline: "2px solid rgba(139,92,246,0.5)",
-                    background: "linear-gradient(135deg, #7c3aed, #3b82f6)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 38, fontWeight: 700, color: "#fff",
-                    boxShadow: "0 0 28px rgba(139,92,246,0.3)",
-                  }}>
-                    {name?.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <div style={{
-                  position: "absolute", bottom: 5, right: 5,
-                  width: 16, height: 16, borderRadius: "50%",
-                  background: "#22c55e", border: "3px solid #0b0f1a",
-                }} />
-              </div>
-              <div style={{ paddingBottom: 6 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
-                  <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: "#fff", letterSpacing: "-0.5px" }}>{name}</h1>
-                  <div style={{ width: 20, height: 20, borderRadius: "50%", background: "linear-gradient(135deg, #7c3aed, #3b82f6)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <svg width="10" height="8" viewBox="0 0 11 9" fill="none"><path d="M1 4.5L4 7.5L10 1.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  </div>
+            {/* Profile Header */}
+            <div className={`profile-header fade-up${mounted ? " in" : ""}`} style={{ transitionDelay: "0.05s" }}>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: 16 }}>
+                <div className="avatar-wrap">
+                  {image
+                    ? <img src={image} alt="avatar" className="avatar" />
+                    : (
+                      <div className="avatar-fallback">
+                        {name?.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  <div className="avatar-status" />
                 </div>
-                <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.38)" }}>{email}</p>
+                <div style={{ paddingBottom: 6 }}>
+                  <div className="profile-name-row">
+                    <span className="profile-name">{name}</span>
+                    <div className="verified-badge">
+                      <svg width="9" height="8" viewBox="0 0 11 9" fill="none">
+                        <path d="M1 4.5L4 7.5L10 1.5" stroke="#8ba4f5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                  </div>
+                  <p className="profile-email">{email}</p>
+                </div>
+              </div>
+              <div className="header-actions">
+                <button className="btn-primary">Edit Profile</button>
+                <button className="btn-ghost">Share</button>
               </div>
             </div>
-            <div style={{ display: "flex", gap: 10, paddingBottom: 6 }}>
-              <button style={{
-                padding: "8px 20px", borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: "pointer",
-                background: "linear-gradient(135deg, #7c3aed, #3b82f6)",
-                border: "none", color: "#fff",
-                boxShadow: "0 4px 18px rgba(124,58,237,0.35)",
-              }}>Edit Profile</button>
-              <button style={{
-                padding: "8px 20px", borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: "pointer",
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.65)",
-              }}>Share</button>
+
+            {/* Stats */}
+            <div className={`stats-row fade-up${mounted ? " in" : ""}`} style={{ transitionDelay: "0.12s" }}>
+              {[
+                { num: "0", label: "Projects" },
+                { num: "0", label: "Followers" },
+                { num: "0", label: "Following" },
+              ].map(s => (
+                <div className="stat-card" key={s.label}>
+                  <div className="stat-num">{s.num}</div>
+                  <div className="stat-label">{s.label}</div>
+                </div>
+              ))}
             </div>
-          </div>
 
-          {/* Stats */}
-          <div style={{
-            display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 24,
-            opacity: mounted ? 1 : 0,
-            transform: mounted ? "translateY(0)" : "translateY(20px)",
-            transition: "opacity 0.6s ease 0.2s, transform 0.6s ease 0.2s",
-          }}>
-            {[{ num: "0", label: "Projects" }, { num: "0", label: "Followers" }, { num: "0", label: "Following" }].map(s => (
-              <div key={s.label} style={{
-                background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)",
-                borderRadius: 14, padding: "18px 20px", textAlign: "center",
-              }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(139,92,246,0.35)"; e.currentTarget.style.background = "rgba(139,92,246,0.06)"; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)"; e.currentTarget.style.background = "rgba(255,255,255,0.03)"; }}
-              >
-                <p style={{ margin: 0, fontSize: 26, fontWeight: 700, color: "#fff", letterSpacing: "-1px" }}>{s.num}</p>
-                <p style={{ margin: "3px 0 0", fontSize: 12, color: "rgba(255,255,255,0.35)", fontWeight: 500 }}>{s.label}</p>
-              </div>
-            ))}
-          </div>
+            {/* Two column */}
+            <div className={`two-col fade-up${mounted ? " in" : ""}`} style={{ transitionDelay: "0.2s" }}>
 
-          {/* Two-col layout */}
-          <div style={{
-            display: "grid", gridTemplateColumns: "1fr 2fr", gap: 18, alignItems: "start",
-            opacity: mounted ? 1 : 0,
-            transform: mounted ? "translateY(0)" : "translateY(20px)",
-            transition: "opacity 0.6s ease 0.3s, transform 0.6s ease 0.3s",
-          }}>
-
-            {/* Left col */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-
-              {/* About */}
-              <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 18 }}>
-                <p style={{ margin: "0 0 14px", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.3)", letterSpacing: "0.09em", textTransform: "uppercase" }}>About</p>
+              {/* Left: About */}
+              <div className="card">
+                <p className="card-title">About</p>
                 {[
-                  { icon: <Icon.User />, label: "Name", value: name },
-                  { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>, label: "Email", value: email },
-                  { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>, label: "Joined", value: joined },
-                  { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>, label: "Auth", value: providerClean },
-                ].map((row, i) => (
-                  <div key={row.label} style={{
-                    display: "flex", alignItems: "flex-start", gap: 10,
-                    paddingBottom: i < 3 ? 11 : 0, marginBottom: i < 3 ? 11 : 0,
-                    borderBottom: i < 3 ? "1px solid rgba(255,255,255,0.05)" : "none",
-                  }}>
-                    <div style={{ color: "rgba(139,92,246,0.8)", marginTop: 2, flexShrink: 0 }}>{row.icon}</div>
+                  { icon: <Icons.Email />, key: "Email",    val: email        },
+                  { icon: <Icons.Calendar />, key: "Joined", val: joined      },
+                  { icon: <Icons.Shield />, key: "Auth via", val: providerClean },
+                ].map(row => (
+                  <div className="info-row" key={row.key}>
+                    <div className="info-icon">{row.icon}</div>
                     <div>
-                      <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.28)", marginBottom: 2 }}>{row.label}</p>
-                      <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.8)", wordBreak: "break-all" }}>{row.value}</p>
+                      <p className="info-key">{row.key}</p>
+                      <p className="info-val">{row.val}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
-            </div>
-
-            {/* Right col */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-
-              {/* Activity */}
-              <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 18 }}>
-                <p style={{ margin: "0 0 14px", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.3)", letterSpacing: "0.09em", textTransform: "uppercase" }}>Recent Activity</p>
-                <div style={{ textAlign: "center", padding: "28px 0" }}>
-                  <div style={{ width: 52, height: 52, borderRadius: "50%", background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.2)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(139,92,246,0.7)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="13" x2="12" y2="17"/><line x1="10" y1="15" x2="14" y2="15"/>
+              {/* Right: Activity */}
+              <div className="card">
+                <p className="card-title">Recent Activity</p>
+                <div className="empty-state">
+                  <div className="empty-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                      <line x1="12" y1="13" x2="12" y2="17"/>
+                      <line x1="10" y1="15" x2="14" y2="15"/>
                     </svg>
                   </div>
-                  <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.6)" }}>No projects yet</p>
-                  <p style={{ margin: "5px 0 18px", fontSize: 12, color: "rgba(255,255,255,0.28)" }}>Share your first project with the community</p>
-                  <button style={{ padding: "8px 20px", borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: "pointer", background: "linear-gradient(135deg, #7c3aed, #3b82f6)", border: "none", color: "#fff", boxShadow: "0 4px 14px rgba(124,58,237,0.3)" }}>+ New Project</button>
+                  <p className="empty-title">No projects yet</p>
+                  <p className="empty-sub">Share your first project with the community</p>
+                  <button className="btn-new">+ New Project</button>
                 </div>
               </div>
-
 
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
