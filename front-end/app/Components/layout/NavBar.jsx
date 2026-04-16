@@ -20,7 +20,11 @@ export const NavBar = () => {
 
         <div className="hidden md:flex gap-8 text-gray-300 text-sm">
           
-          <a href="#" className="hover:text-white transition">Explore</a>
+          {/* explore route */}
+          <Link href="/Explore">
+            <p className="hover:text-white transition">Explore</p>
+          </Link>
+
           <a href="#" className="hover:text-white transition">Projects</a>
           <a href="#" className="hover:text-white transition">Community</a>
           <Link href='/Profile'>
@@ -28,6 +32,7 @@ export const NavBar = () => {
           </Link>
         </div>
 
+        {/* sign in route */}
         <div className="flex items-center gap-3">
           <Link href="/sign-up">
             <button className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white text-sm font-medium hover:opacity-90 transition">

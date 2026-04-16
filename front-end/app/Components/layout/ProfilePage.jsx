@@ -5,7 +5,7 @@ import { signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 
 const NAV = [
-  { id: "home",   label: "Home",   icon: <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/>, extra: <path d="M9 21V12h6v9"/> },
+  { id: "home",   label: "Home",   href: "/", icon: <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/>, extra: <path d="M9 21V12h6v9"/> },
   { id: "post",   label: "Post",   icon: <><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></> },
   { id: "people", label: "People", icon: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></> },
   { id: "code",   label: "Code",   icon: <><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></> },
@@ -28,15 +28,15 @@ function Sidebar({ expanded, onToggle, active, onNav }) {
       </div>
 
       <nav className="flex-1 flex flex-col gap-0.5">
-        {NAV.map(({ id, label, icon }) => (
-          <div key={id} onClick={() => onNav(id)}
-            className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer text-[13.5px] font-normal border transition-all
-              ${expanded ? "" : "justify-center"}
-              ${active === id ? "bg-[#161c2e] text-[#8ba4f5] border-[#1e2a4a] font-medium" : "text-[#5a5f72] border-transparent hover:bg-[#161820] hover:text-[#c8cad4]"}`}>
-            <Icon>{icon}</Icon>
-            {expanded && <span>{label}</span>}
-          </div>
-        ))}
+        {NAV.map(({ id, label, href, icon }) => {
+          const cls = `flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer text-[13.5px] font-normal border transition-all no-underline
+            ${expanded ? "" : "justify-center"}
+            ${active === id ? "bg-[#161c2e] text-[#8ba4f5] border-[#1e2a4a] font-medium" : "text-[#5a5f72] border-transparent hover:bg-[#161820] hover:text-[#c8cad4]"}`;
+          const content = <><Icon>{icon}</Icon>{expanded && <span>{label}</span>}</>;
+          return href
+            ? <Link key={id} href={href} className={cls} onClick={() => onNav(id)}>{content}</Link>
+            : <div key={id} className={cls} onClick={() => onNav(id)}>{content}</div>;
+        })}
       </nav>
 
       <hr className="border-[#1a1c23] my-3" />
