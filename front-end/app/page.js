@@ -1,15 +1,21 @@
 'use client'
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import Hero_Section_One from "./Components/layout/Hero-Section-one";
+import { NavBar } from "./Components/layout/NavBar";
 
 // export const metadata = {
 //   title: "Dev Collab | Home"
 // };
 
 export default function Home() {
+  const pathname = usePathname();
+
   return (
     <div className="bg-[#0b0f1a] overflow-hidden relative">
       
+      {pathname === "/" && <NavBar />}
+
       {/* HERO SECTION */}
       <div className="min-h-screen flex items-center justify-start relative">
         
