@@ -1,11 +1,8 @@
 'use client'
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
-
-const MOCK_USERS = [
-];
 
 const FILTERS = ["All", "Frontend", "Backend", "ML", "DevOps", "Systems"];
 
@@ -54,18 +51,86 @@ function Sidebar({ expanded, onToggle, active, onNav }) {
   );
 }
 
-export default function Main_Explore() {
-  const [query, setQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState("All");
-  const [expanded, setExpanded] = useState(true);
-  const [activeNav, setActiveNav] = useState("home");
+// Avatar: generates initials + a consistent color from the name
+function Avatar({ name }) {
+  const initials = name?.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2) || "?";
+  const colors = [
+    "bg-blue-500/20 text-blue-300 border-blue-500/30",
+    "bg-purple-500/20 text-purple-300 border-purple-500/30",
+    "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+    "bg-rose-500/20 text-rose-300 border-rose-500/30",
+    "bg-amber-500/20 text-amber-300 border-amber-500/30",
+    "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
+  ];
+  const color = colors[name?.charCodeAt(0) % colors.length] ?? colors[0];
+  return (
+    <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-[15px] font-semibold border ${color} shrink-0`}>
+      {initials}
+    </div>
+  );
+}
 
-  const filtered = MOCK_USERS.filter(u => {
+// Highlight matching text in results
+function Highlight({ text = "", query = "" }) {
+  if (!query) return <span>{text}</span>;
+  const idx = text.toLowerCase().indexOf(query.toLowerCase());
+  if (idx === -1) return <span>{text}</span>;
+  return (
+    <span>
+      {text.slice(0, idx)}
+      <mark className="bg-blue-500/30 text-blue-200 rounded px-0.5">{text.slice(idx, idx + query.length)}</mark>
+      {text.slice(idx + query.length)}
+    </span>
+  );
+}
+
+export default function Main_Explore() {
+  const [query, setQuery]               = useState("");
+  const [activeFilter, setActiveFilter] = useState("All");
+  const [expanded, setExpanded]         = useState(true);
+  const [activeNav, setActiveNav]       = useState("home");
+
+  const [allUsers, setAllUsers]   = useState([]);   // raw data from DB
+  const [loading, setLoading]     = useState(false);
+  const [error, setError]         = useState(null);
+  const [searched, setSearched]   = useState(false); // did user initiate a search?
+
+  const inputRef = useRef(null);
+
+  // Fetch ALL users from your existing GET /api/explore endpoint
+  const fetchUsers = async () => {
+    setLoading(true);
+    setError(null);
+    setSearched(true);
+    try {
+      const res = await fetch("/api/explore");
+      const data = await res.json();
+      if (data.success) {
+        setAllUsers(data.users);
+      } else {
+        setError(data.message || "Failed to fetch users");
+      }
+    } catch (err) {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Auto-fetch when query becomes non-empty for the first time (lazy load)
+  useEffect(() => {
+    if (query && !searched) fetchUsers();
+  }, [query]);
+
+  // Client-side filter on the already-fetched list
+  const filtered = allUsers.filter(u => {
     const q = query.toLowerCase();
-    const matchQ = !q || [u.name, u.username, u.role, ...u.tags].some(v => v.toLowerCase().includes(q));
-    const matchF = activeFilter === "All" || u.role.toLowerCase().includes(activeFilter.toLowerCase()) || u.tags.some(t => t.toLowerCase().includes(activeFilter.toLowerCase()));
-    return matchQ && matchF;
+    return !q || u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q);
   });
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") fetchUsers();
+  };
 
   return (
     <div className="min-h-screen bg-[#0b0f1a] relative overflow-hidden flex">
@@ -77,30 +142,140 @@ export default function Main_Explore() {
         onNav={setActiveNav}
       />
 
-      <div className="flex-1">
+      <div className="flex-1 overflow-y-auto">
 
+        {/* Background glows */}
         <div className="absolute top-[-100px] right-[-100px] w-[500px] h-[500px] bg-blue-500 opacity-10 blur-[140px] rounded-full pointer-events-none" />
         <div className="absolute bottom-[-100px] left-[-100px] w-[500px] h-[500px] bg-purple-600 opacity-10 blur-[140px] rounded-full pointer-events-none" />
-
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 py-14">
 
+          {/* Header */}
           <div className="mb-10 text-center">
-            <span className="inline-block px-4 py-1 text-[12px] rounded-full bg-white/5 text-gray-400 border border-white/10 mb-4">Explore Developers</span>
+            <span className="inline-block px-4 py-1 text-[12px] rounded-full bg-white/5 text-gray-400 border border-white/10 mb-4">
+              Explore Developers
+            </span>
             <h1 className="text-3xl font-bold text-white tracking-tight">Find your people</h1>
             <p className="mt-2 text-gray-500 text-[14px]">Search across the community and connect with developers</p>
           </div>
 
+          {/* Search bar */}
           <div className="relative mb-6 max-w-xl mx-auto">
+            {/* Search icon — left */}
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </div>
+
             <input
+              ref={inputRef}
               type="text"
               value={query}
               onChange={e => setQuery(e.target.value)}
-              placeholder="Search by name, username, role, or stack…"
-              className="w-full pl-11 pr-10 py-3 rounded-xl bg-white/[0.05] border border-white/10 text-white placeholder-gray-600 text-[14px] outline-none focus:border-blue-500/50 focus:bg-white/[0.07] transition-all"
+              onKeyDown={handleKeyDown}
+              placeholder="Search by name or email… (press Enter)"
+              className="w-full pl-10 pr-24 py-3 rounded-xl bg-white/[0.05] border border-white/10 text-white placeholder-gray-600 text-[14px] outline-none focus:border-blue-500/50 focus:bg-white/[0.07] transition-all"
             />
+
+            {/* Search button — right inside input */}
+            <button
+              onClick={fetchUsers}
+              className="absolute right-2 top-1/2 -translate-y-1/2 px-3.5 py-1.5 rounded-lg bg-blue-600/80 hover:bg-blue-500 text-white text-[12px] font-medium transition-colors flex items-center gap-1.5"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              Search
+            </button>
           </div>
+
+          {/* Results area */}
+          {loading && (
+            <div className="flex items-center justify-center py-16 gap-3 text-gray-500 text-[14px]">
+              <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+              </svg>
+              Searching users…
+            </div>
+          )}
+
+          {error && (
+            <div className="max-w-xl mx-auto mt-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-[13px] text-center">
+              {error}
+            </div>
+          )}
+
+          {!loading && searched && !error && (
+            <>
+              {/* Result count */}
+              <p className="text-[12px] text-gray-600 mb-4 text-center">
+                {filtered.length === 0
+                  ? "No users found"
+                  : `${filtered.length} user${filtered.length > 1 ? "s" : ""} found`}
+              </p>
+
+              {/* User cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filtered.map(user => (
+                  <div
+                    key={user._id}
+                    className="flex items-start gap-3.5 p-4 rounded-xl bg-white/[0.03] border border-white/[0.07] hover:bg-white/[0.06] hover:border-blue-500/20 transition-all group"
+                  >
+                    <Avatar name={user.name} />
+
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[14px] font-semibold text-white truncate group-hover:text-blue-300 transition-colors">
+                        <Highlight text={user.name} query={query} />
+                      </p>
+                      <p className="text-[12px] text-gray-500 truncate mt-0.5">
+                        <Highlight text={user.email} query={query} />
+                      </p>
+
+                      {/* Auth provider badge */}
+                      <span className={`inline-block mt-2 px-2 py-0.5 rounded-full text-[10px] font-medium border
+                        ${user.password === "oauth_google"
+                          ? "bg-red-500/10 text-red-400 border-red-500/20"
+                          : user.password === "oauth_github"
+                          ? "bg-gray-500/10 text-gray-400 border-gray-500/20"
+                          : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
+                        {user.password === "oauth_google" ? "Google" : user.password === "oauth_github" ? "GitHub" : "Email"}
+                      </span>
+                    </div>
+
+                    {/* Arrow hint */}
+                    <div className="text-gray-700 group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all mt-0.5">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                      </svg>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Empty state */}
+              {filtered.length === 0 && (
+                <div className="text-center py-16 text-gray-600">
+                  <svg className="mx-auto mb-3 opacity-40" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                  <p className="text-[14px]">No users match <span className="text-gray-400">"{query}"</span></p>
+                  <p className="text-[12px] mt-1">Try a different name or email</p>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Initial prompt — before any search */}
+          {!searched && !loading && (
+            <div className="text-center py-16 text-gray-700">
+              <svg className="mx-auto mb-3 opacity-30" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <p className="text-[13px]">Type a name or email and press <kbd className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[11px] text-gray-500">Enter</kbd></p>
+            </div>
+          )}
 
         </div>
       </div>
