@@ -2,16 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { signOut } from "next-auth/react"; // ✅ FIXED
+import { signOut } from "next-auth/react";
 
-// ── Mock data – swap with real API call later 
 const MOCK_USERS = [
-//   { id: 1, name: "Aryan Mehta",     username: "aryanm",    role: "Full-Stack Dev",   followers: 1240, projects: 18, tags: ["React", "Node", "Postgres"] },
-//   { id: 2, name: "Sofia Reyes",     username: "sofiax",    role: "UI/UX Engineer",   followers: 870,  projects: 9,  tags: ["Figma", "Next.js", "CSS"] },
-//   { id: 3, name: "Liam Chen",       username: "liamchen",  role: "ML Engineer",      followers: 3100, projects: 27, tags: ["Python", "PyTorch", "CUDA"] },
-//   { id: 4, name: "Priya Nair",      username: "priyanr",   role: "DevOps",           followers: 540,  projects: 12, tags: ["Docker", "K8s", "AWS"] },
-//   { id: 5, name: "Marcus Webb",     username: "marcusw",   role: "Systems Engineer", followers: 2200, projects: 34, tags: ["Rust", "C++", "WASM"] },
-//   { id: 6, name: "Hana Kobayashi",  username: "hanakb",    role: "Frontend Dev",     followers: 990,  projects: 7,  tags: ["Vue", "TypeScript", "Tailwind"] },
 ];
 
 const FILTERS = ["All", "Frontend", "Backend", "ML", "DevOps", "Systems"];
@@ -29,10 +22,9 @@ const Icon = ({ d, size = 17, children }) => (
   </svg>
 );
 
-// SideBar
 function Sidebar({ expanded, onToggle, active, onNav }) {
   return (
-    <aside className={`flex flex-col bg-[#0d0f19] border-r border-[#1e2029] p-3 transition-all duration-300 ${expanded ? "w-[220px]" : "w-[60px]"}`}>
+    <aside className={`flex flex-col bg-[#0d0f14] border-r border-[#1e2029] p-3 transition-all duration-300 ${expanded ? "w-[220px]" : "w-[60px]"}`}>
       <div className={`flex items-center mb-5 ${expanded ? "justify-between" : "justify-center"}`}>
         {expanded && <span className="text-[10px] font-semibold tracking-widest uppercase text-[#3a3d4a] px-2">Menu</span>}
         <button onClick={onToggle} className="w-7 h-7 flex items-center justify-center rounded-md border border-[#1e2029] text-[#3a3d4a] hover:bg-[#161820] hover:text-[#8ba4f5] transition-colors">
@@ -65,8 +57,6 @@ function Sidebar({ expanded, onToggle, active, onNav }) {
 export default function Main_Explore() {
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
-
-  // ADDED (required for sidebar)
   const [expanded, setExpanded] = useState(true);
   const [activeNav, setActiveNav] = useState("home");
 
@@ -80,7 +70,6 @@ export default function Main_Explore() {
   return (
     <div className="min-h-screen bg-[#0b0f1a] relative overflow-hidden flex">
 
-      {/* Sidebar added */}
       <Sidebar
         expanded={expanded}
         onToggle={() => setExpanded(prev => !prev)}
@@ -90,23 +79,19 @@ export default function Main_Explore() {
 
       <div className="flex-1">
 
-        {/* Ambient glows */}
         <div className="absolute top-[-100px] right-[-100px] w-[500px] h-[500px] bg-blue-500 opacity-10 blur-[140px] rounded-full pointer-events-none" />
         <div className="absolute bottom-[-100px] left-[-100px] w-[500px] h-[500px] bg-purple-600 opacity-10 blur-[140px] rounded-full pointer-events-none" />
 
-        {/* Grid */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 py-14">
 
-          {/* Header */}
           <div className="mb-10 text-center">
             <span className="inline-block px-4 py-1 text-[12px] rounded-full bg-white/5 text-gray-400 border border-white/10 mb-4">Explore Developers</span>
             <h1 className="text-3xl font-bold text-white tracking-tight">Find your people</h1>
             <p className="mt-2 text-gray-500 text-[14px]">Search across the community and connect with developers</p>
           </div>
 
-          {/* Search */}
           <div className="relative mb-6 max-w-xl mx-auto">
             <input
               type="text"
