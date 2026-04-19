@@ -5,9 +5,24 @@
 // };
 
 import { signIn, signOut, useSession } from "next-auth/react"
+import { useState } from "react"
+import Link from "next/link"
 
 export default function Sign() {
     const { data: session, status } = useSession();
+
+    const [email, setEmail] = useState("")
+    const [password, setPassword] = useState("")
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
+
+        await signIn("credentials", {
+            email,
+            password,
+            redirect: false
+        })
+    }
 
     if (status === "loading") {
         return (
@@ -54,6 +69,37 @@ export default function Sign() {
                     Join the dev community and start sharing your work
                 </p>
 
+                {/* Email + Password Login */}
+                <form onSubmit={handleLogin} className="flex flex-col gap-4 mb-6">
+
+                    <input
+                        type="email"
+                        placeholder="Email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full px-4 py-3 rounded-lg bg-[#111827] border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
+                        required
+                    />
+
+                    <input
+                        type="password"
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full px-4 py-3 rounded-lg bg-[#111827] border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
+                        required
+                    />
+
+                    <button
+                        type="submit"
+                        className="w-full py-3 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white font-medium hover:opacity-90 transition"
+                    >
+                        Sign In
+                    </button>
+
+                </form>
+
+                {/* OAuth Buttons */}
                 <div className="flex flex-col gap-4">
 
                     <button
@@ -71,6 +117,15 @@ export default function Sign() {
                     </button>
 
                 </div>
+
+                {/* Sign Up Link */}
+                <p className="text-gray-400 text-sm mt-6 text-center">
+                    Don’t have an account?{" "}
+                    <Link href="/signup" className="text-purple-400 hover:underline">
+                        Sign up
+                    </Link>
+                </p>
+
             </div>
         </div>
     )
