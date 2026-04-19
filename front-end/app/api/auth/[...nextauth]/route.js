@@ -1,71 +1,120 @@
 import NextAuth from "next-auth";
 import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
+
 import { connectDB } from "@/database/db";
 import User from "@/database/models/user";
 
 const handler = NextAuth({
   providers: [
+
+    // Credentials Auth (Email + Password)
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+
+      async authorize(credentials) {
+        await connectDB();
+
+        const user = await User.findOne({ email: credentials.email });
+
+        if (!user) {
+          throw new Error("No user found");
+        }
+
+        // compare hashed password
+        const isValid = await bcrypt.compare(
+          credentials.password,
+          user.password
+        );
+
+        if (!isValid) {
+          throw new Error("Invalid password");
+        }
+
+        return {
+          id: user._id.toString(),
+          email: user.email,
+          name: user.name,
+        };
+      },
+    }),
+
+    // Google
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
+
+    // GitHub
     GitHubProvider({
       clientId: process.env.GITHUB_ID,
       clientSecret: process.env.GITHUB_SECRET,
     }),
   ],
+
   session: {
     strategy: "jwt",
   },
+
   pages: {
-    signIn: "/sign-up",
+    signIn: "/sign", // ✅ fixed (your actual login page)
   },
+
   callbacks: {
-    // This runs every time a user signs in
+
+    // 🔥 Runs on OAuth login
     async signIn({ user, account }) {
       try {
         await connectDB();
 
-        const existingUser = await User.findOne({ email: user.email });
+        // only run this for OAuth
+        if (account.provider !== "credentials") {
 
-        if (!existingUser) {
-          // New user — save to MongoDB then continue to redirect callback
-          await User.create({
-            name: user.name,
-            email: user.email,
-            password: "oauth_" + account.provider, // placeholder
-          });
-          console.log("New user saved to DB:", user.email);
-          return true;
+          const existingUser = await User.findOne({ email: user.email });
+
+          if (!existingUser) {
+            await User.create({
+              name: user.name,
+              email: user.email,
+              password: await bcrypt.hash(
+                "oauth_" + account.provider,
+                10
+              ),
+            });
+
+            console.log("New OAuth user saved:", user.email);
+          }
         }
 
-        // 👇 Existing user — skip everything, go straight to /Profile
-        console.log("User already exists, redirecting to profile:", user.email);
-        return "/Profile";
+        return true;
 
       } catch (error) {
-        console.error("Error saving user to DB:", error);
-        return false; // block sign in on error
+        console.error("Error in signIn callback:", error);
+        return false;
       }
     },
 
-    // redirect to /Profile after login (for new users)
-    async redirect({ url, baseUrl }) {
+    async redirect({ baseUrl }) {
       return baseUrl + "/Profile";
     },
 
-    async jwt({ token, user, account }) {
-      if (account && user) {
-        token.accessToken = account.access_token;
+    async jwt({ token, user }) {
+      if (user) {
         token.id = user.id;
       }
       return token;
     },
 
     async session({ session, token }) {
-      session.user.id = token.id;
-      session.accessToken = token.accessToken;
+      if (session.user) {
+        session.user.id = token.id;
+      }
       return session;
     },
   },

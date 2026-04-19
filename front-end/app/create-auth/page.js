@@ -2,18 +2,59 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { signIn } from "next-auth/react"
 
 export default function SignUp() {
+
+    const router = useRouter();
 
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
 
+    const [error, setError] = useState("")
+    const [loading, setLoading] = useState(false)
+
     const handleSignup = async (e) => {
         e.preventDefault();
 
-        // TODO: connect to your API
-        console.log({ name, email, password })
+        setError("")
+        setLoading(true)
+
+        try {
+            const res = await fetch("/api/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name,
+                    email,
+                    password,
+                }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                setLoading(false)
+                setError(data.message || "Something went wrong")
+                return;
+            }
+
+            // Auto login + redirect to Profile
+            await signIn("credentials", {
+                email,
+                password,
+                redirect: true,
+                callbackUrl: "/Profile"
+            });
+
+        } catch (err) {
+            setLoading(false)
+            setError("Something went wrong. Try again.")
+        }
     }
 
     return (
@@ -64,11 +105,16 @@ export default function SignUp() {
                         required
                     />
 
+                    {error && (
+                        <p className="text-red-400 text-sm">{error}</p>
+                    )}
+
                     <button
                         type="submit"
-                        className="w-full py-3 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white font-medium hover:opacity-90 transition"
+                        disabled={loading}
+                        className="w-full py-3 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white font-medium hover:opacity-90 transition disabled:opacity-50"
                     >
-                        Sign Up
+                        {loading ? "Creating account..." : "Sign Up"}
                     </button>
 
                 </form>
@@ -76,7 +122,7 @@ export default function SignUp() {
                 {/* Redirect Link */}
                 <p className="text-gray-400 text-sm mt-6 text-center">
                     Already have an account?{" "}
-                    <Link href="/sign-up" className="text-purple-400 hover:underline">
+                    <Link href="/sign-in" className="text-purple-400 hover:underline">
                         Sign in
                     </Link>
                 </p>

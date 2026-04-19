@@ -7,21 +7,35 @@
 import { signIn, signOut, useSession } from "next-auth/react"
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 export default function Sign() {
     const { data: session, status } = useSession();
+    const router = useRouter();
 
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
+    const [error, setError] = useState("")
+    const [loading, setLoading] = useState(false)
 
     const handleLogin = async (e) => {
         e.preventDefault();
+        setError("")
+        setLoading(true)
 
-        await signIn("credentials", {
+        const res = await signIn("credentials", {
             email,
             password,
-            redirect: false
-        })
+            redirect: false,
+        });
+
+        setLoading(false)
+
+        if (res?.error) {
+            setError("Invalid email or password")
+        } else {
+            router.push("/Profile")
+        }
     }
 
     if (status === "loading") {
@@ -90,11 +104,16 @@ export default function Sign() {
                         required
                     />
 
+                    {error && (
+                        <p className="text-red-400 text-sm">{error}</p>
+                    )}
+
                     <button
                         type="submit"
-                        className="w-full py-3 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white font-medium hover:opacity-90 transition"
+                        disabled={loading}
+                        className="w-full py-3 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white font-medium hover:opacity-90 transition disabled:opacity-50"
                     >
-                        Sign In
+                        {loading ? "Signing in..." : "Sign In"}
                     </button>
 
                 </form>
@@ -111,7 +130,7 @@ export default function Sign() {
 
                     <button
                         onClick={() => signIn("google")}
-                        className="flex-1 py-2.5 rounded-lg bg-[#0f172a] border border-white/10 text-white text-sm font-medium  hover:bg-white/10 transition"
+                        className="flex-1 py-2.5 rounded-lg bg-[#111827] border border-white/10 text-white text-sm font-medium hover:bg-white/10 transition"
                     >
                         Google
                     </button>
@@ -125,7 +144,6 @@ export default function Sign() {
                         Sign up
                     </Link>
                 </p>
-                
 
             </div>
         </div>
