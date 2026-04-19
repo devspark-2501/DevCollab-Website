@@ -100,20 +100,20 @@ export default function Sign() {
                 </form>
 
                 {/* OAuth Buttons */}
-                <div className="flex flex-col gap-4">
+                <div className="flex gap-3">
 
                     <button
                         onClick={() => signIn("github")}
-                        className="w-full py-3 rounded-lg bg-[#111827] border border-white/10 text-white font-medium hover:bg-white/10 transition"
+                        className="flex-1 py-2.5 rounded-lg bg-[#0f172a] border border-white/10 text-white text-sm font-medium hover:bg-white/10 transition"
                     >
-                        Continue with GitHub
+                        GitHub
                     </button>
 
                     <button
                         onClick={() => signIn("google")}
-                        className="w-full py-3 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white font-medium hover:opacity-90 transition"
+                        className="flex-1 py-2.5 rounded-lg bg-[#0f172a] border border-white/10 text-white text-sm font-medium  hover:bg-white/10 transition"
                     >
-                        Continue with Google
+                        Google
                     </button>
 
                 </div>
@@ -121,10 +121,11 @@ export default function Sign() {
                 {/* Sign Up Link */}
                 <p className="text-gray-400 text-sm mt-6 text-center">
                     Don’t have an account?{" "}
-                    <Link href="/signup" className="text-purple-400 hover:underline">
+                    <Link href="/create-auth" className="text-purple-400 hover:underline">
                         Sign up
                     </Link>
                 </p>
+                
 
             </div>
         </div>
