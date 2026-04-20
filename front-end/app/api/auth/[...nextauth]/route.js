@@ -27,6 +27,11 @@ const handler = NextAuth({
           throw new Error("No user found");
         }
 
+        // NEW FIX: block OAuth users from credentials login
+        if (user.password.startsWith("oauth_")) {
+          throw new Error("This account was created using Google/GitHub. Please login with OAuth.");
+        }
+
         // compare hashed password
         const isValid = await bcrypt.compare(
           credentials.password,
@@ -63,12 +68,12 @@ const handler = NextAuth({
   },
 
   pages: {
-    signIn: "/sign", // ✅ fixed (your actual login page)
+    signIn: "/sign", // fixed (your actual login page)
   },
 
   callbacks: {
 
-    // 🔥 Runs on OAuth login
+    // Runs on OAuth login
     async signIn({ user, account }) {
       try {
         await connectDB();
@@ -82,10 +87,9 @@ const handler = NextAuth({
             await User.create({
               name: user.name,
               email: user.email,
-              password: await bcrypt.hash(
-                "oauth_" + account.provider,
-                10
-              ),
+
+              // keep your logic but mark clearly as oauth
+              password: "oauth_" + account.provider,
             });
 
             console.log("New OAuth user saved:", user.email);
