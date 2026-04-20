@@ -1,79 +1,253 @@
 'use client'
-import Link from "next/link";
+import { useState, useEffect, useRef } from "react";
 
-export default function Hero_Section_One() {
+const images = [
+  { id: 1, src: "https://picsum.photos/seed/dev1/800/500", alt: "Community 1" },
+  { id: 2, src: "https://picsum.photos/seed/dev2/800/500", alt: "Community 2" },
+  { id: 3, src: "https://picsum.photos/seed/dev3/800/500", alt: "Community 3" },
+  { id: 4, src: "https://picsum.photos/seed/dev4/800/500", alt: "Community 4" },
+  { id: 5, src: "https://picsum.photos/seed/dev5/800/500", alt: "Community 5" },
+  { id: 6, src: "https://picsum.photos/seed/dev6/800/500", alt: "Community 6" },
+  { id: 7, src: "https://picsum.photos/seed/dev7/800/500", alt: "Community 7" },
+  { id: 8, src: "https://picsum.photos/seed/dev8/800/500", alt: "Community 8" },
+  { id: 9, src: "https://picsum.photos/seed/dev9/800/500", alt: "Community 9" },
+  { id: 10, src: "https://picsum.photos/seed/dev10/800/500", alt: "Community 10" },
+  { id: 11, src: "https://picsum.photos/seed/dev11/800/500", alt: "Community 11" },
+];
+
+export default function CommunitySection() {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [memberCount, setMemberCount] = useState(null);
+  const autoPlayRef = useRef(null);
+
+  useEffect(() => {
+    fetch("/api/community")
+      .then((res) => res.json())
+      .then((data) => setMemberCount(data.members))
+      .catch(() => setMemberCount(null));
+  }, []);
+
+  const total = images.length;
+
+  const getIndex = (offset) => (activeIndex + offset + total) % total;
+
+  const goTo = (index) => {
+    if (isAnimating) return;
+    setIsAnimating(true);
+    setActiveIndex((index + total) % total);
+    setTimeout(() => setIsAnimating(false), 400);
+  };
+
+  const prev = () => goTo(activeIndex - 1);
+  const next = () => goTo(activeIndex + 1);
+
+  useEffect(() => {
+    autoPlayRef.current = setInterval(() => {
+      goTo(activeIndex + 1);
+    }, 3500);
+    return () => clearInterval(autoPlayRef.current);
+  }, [activeIndex]);
+
+  const slots = [-3, -2, -1, 0, 1, 2, 3].map((offset) => ({
+    index: getIndex(offset),
+    offset,
+    image: images[getIndex(offset)],
+  }));
+
+  const slotStyles = {
+    "-3": { transform: "translateX(-295%) scale(0.58)", opacity: 0.25, zIndex: 1, filter: "blur(1.5px)" },
+    "-2": { transform: "translateX(-195%) scale(0.70)", opacity: 0.45, zIndex: 2, filter: "blur(1px)" },
+    "-1": { transform: "translateX(-105%) scale(0.82)", opacity: 0.70, zIndex: 3, filter: "blur(0px)" },
+    "0":  { transform: "translateX(0%)    scale(1)",    opacity: 1,    zIndex: 10, filter: "blur(0px)" },
+    "1":  { transform: "translateX(105%)  scale(0.82)", opacity: 0.70, zIndex: 3, filter: "blur(0px)" },
+    "2":  { transform: "translateX(195%)  scale(0.70)", opacity: 0.45, zIndex: 2, filter: "blur(1px)" },
+    "3":  { transform: "translateX(295%)  scale(0.58)", opacity: 0.25, zIndex: 1, filter: "blur(1.5px)" ,
+    },
+  };
+
   return (
-    <div className="min-h-screen bg-[#0b0f1a] relative overflow-hidden flex items-center justify-center">
-      
+    <div className="min-h-screen bg-[#0b0f1a] relative overflow-hidden flex flex-col items-center justify-center py-24 px-6">
+
       {/* Glow Effects */}
-      <div className="absolute top-[-150px] right-[-150px] w-[400px] h-[400px] bg-blue-500 opacity-20 blur-[120px] rounded-full"></div>
-      <div className="absolute bottom-[-150px] left-[-150px] w-[400px] h-[400px] bg-purple-600 opacity-20 blur-[120px] rounded-full"></div>
+      <div className="absolute top-[-150px] right-[-150px] w-[400px] h-[400px] bg-blue-500 opacity-20 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-[-150px] left-[-150px] w-[400px] h-[400px] bg-purple-600 opacity-20 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-indigo-600 opacity-10 blur-[140px] rounded-full pointer-events-none" />
 
       {/* Grid Background */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
 
-      <div className="relative z-10 max-w-6xl px-6 py-20 w-full">
-        
-        {/* Heading */}
-        <div className="text-center mb-16">
-          <span className="px-4 py-1 text-sm rounded-full bg-white/5 text-gray-300 border border-white/10 backdrop-blur">
-            Developer Community
+      {/* Header */}
+      <div className="relative z-10 text-center mb-14 max-w-2xl">
+        <span className="inline-block px-4 py-1 text-xs rounded-full bg-white/5 text-gray-400 border border-white/10 backdrop-blur tracking-widest uppercase mb-5">
+          Meet The People
+        </span>
+        <h2
+          className="text-5xl md:text-6xl font-black text-white leading-tight"
+          style={{
+            fontFamily: "'Syne', 'Space Grotesk', sans-serif",
+            letterSpacing: "-0.02em",
+          }}
+        >
+          Our{" "}
+          <span
+            style={{
+              background: "linear-gradient(90deg, #a78bfa, #60a5fa)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
+          >
+            Community
           </span>
+        </h2>
+        <p className="mt-4 text-gray-400 text-base leading-relaxed">
+          Thousands of developers, designers, and builders — all in one place.
+          Share ideas, ship products, and grow together.
+        </p>
 
-          <h2 className="mt-6 text-4xl font-bold text-white">
-            Connect. Collaborate. Grow.
-          </h2>
-
-          <p className="mt-4 text-gray-400 max-w-xl mx-auto">
-            A social network built for developers to share projects, collaborate in real-time, and build a strong presence in the tech community.
-          </p>
-        </div>
-
-        {/* Features Grid */}
-        <div className="grid md:grid-cols-3 gap-8">
-          
-          {/* Card 1 */}
-          <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur hover:bg-white/10 transition">
-            <h3 className="text-xl font-semibold text-white mb-2">
-              Share Projects
-            </h3>
-            <p className="text-gray-400 text-sm">
-              Showcase your work, get feedback, and build your developer portfolio.
-            </p>
+        {/* Stat pills */}
+        <div className="mt-6 flex items-center justify-center gap-4 flex-wrap">
+          {/* Live member count from DB */}
+          <div className="px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur flex items-center gap-2">
+            <span
+              className="text-sm font-bold"
+              style={{
+                background: "linear-gradient(90deg, #a78bfa, #60a5fa)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              {memberCount === null ? (
+                <span className="inline-block w-6 h-3 rounded bg-white/10 animate-pulse align-middle" />
+              ) : (
+                memberCount.toLocaleString()
+              )}
+            </span>
+            <span className="text-gray-400 text-xs">Members</span>
           </div>
 
-          {/* Card 2 */}
-          <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur hover:bg-white/10 transition">
-            <h3 className="text-xl font-semibold text-white mb-2">
-              Collaborate Live
-            </h3>
-            <p className="text-gray-400 text-sm">
-              Team up with other developers, contribute to projects, and grow together.
-            </p>
-          </div>
-
-          {/* Card 3 */}
-          <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur hover:bg-white/10 transition">
-            <h3 className="text-xl font-semibold text-white mb-2">
-              Build Reputation
-            </h3>
-            <p className="text-gray-400 text-sm">
-              Gain followers, earn credibility, and stand out in the dev community.
-            </p>
-          </div>
 
         </div>
-
-        {/* CTA */}
-        <div className="mt-16 text-center">
-          <Link href="/explore">
-            <button className="px-8 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white font-medium shadow-lg hover:opacity-90 transition">
-              Explore Community
-            </button>
-          </Link>
-        </div>
-
       </div>
+
+      {/* Slider */}
+      <div className="relative z-10 w-full max-w-6xl">
+        <div className="relative h-[260px] md:h-[300px] flex items-center justify-center">
+          {slots.map(({ index, offset, image }) => {
+            const style = slotStyles[String(offset)];
+            const isCenter = offset === 0;
+            return (
+              <div
+                key={`${index}-${offset}`}
+                onClick={() => !isCenter && goTo(index)}
+                style={{
+                  position: "absolute",
+                  width: "clamp(240px, 30vw, 420px)",
+                  aspectRatio: "16/9",
+                  borderRadius: "10px",
+                  overflow: "hidden",
+                  transition: "transform 0.45s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.45s ease, filter 0.45s ease",
+                  cursor: !isCenter ? "pointer" : "default",
+                  border: isCenter ? "1.5px solid rgba(139,92,246,0.5)" : "1px solid rgba(255,255,255,0.07)",
+                  boxShadow: isCenter ? "0 0 40px rgba(124,58,237,0.25), 0 8px 32px rgba(0,0,0,0.5)" : "0 4px 16px rgba(0,0,0,0.3)",
+                  ...style,
+                }}
+              >
+                <img
+                  src={image.src}
+                  alt={image.alt}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                  draggable={false}
+                />
+                {!isCenter && (
+                  <div style={{ position: "absolute", inset: 0, background: "rgba(11,15,26,0.35)", borderRadius: "10px" }} />
+                )}
+                {isCenter && (
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(11,15,26,0.55) 0%, transparent 60%)" }} />
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Nav Arrows */}
+        <button
+          onClick={prev}
+          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 z-20 w-10 h-10 rounded-full bg-white/5 border border-white/10 backdrop-blur flex items-center justify-center text-white hover:bg-white/10 transition"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </button>
+        <button
+          onClick={next}
+          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 z-20 w-10 h-10 rounded-full bg-white/5 border border-white/10 backdrop-blur flex items-center justify-center text-white hover:bg-white/10 transition"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Dots */}
+      <div className="relative z-10 flex items-center gap-2 mt-6">
+        {images.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => goTo(i)}
+            className="rounded-full transition-all duration-300"
+            style={{
+              width: i === activeIndex ? "24px" : "6px",
+              height: "6px",
+              background:
+                i === activeIndex
+                  ? "linear-gradient(90deg, #a78bfa, #60a5fa)"
+                  : "rgba(255,255,255,0.2)",
+            }}
+          />
+        ))}
+      </div>
+
+      {/* CTA Button */}
+      <div className="relative z-10 mt-12 text-center">
+        <button
+          className="relative px-10 py-4 rounded-xl text-white font-semibold text-base overflow-hidden group transition-all duration-300"
+          style={{
+            background: "linear-gradient(135deg, #7c3aed, #2563eb)",
+            boxShadow: "0 0 30px rgba(124,58,237,0.35), 0 4px 20px rgba(37,99,235,0.2)",
+            fontFamily: "'Syne', sans-serif",
+            letterSpacing: "0.01em",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.boxShadow =
+              "0 0 50px rgba(124,58,237,0.55), 0 8px 30px rgba(37,99,235,0.35)";
+            e.currentTarget.style.transform = "translateY(-2px)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.boxShadow =
+              "0 0 30px rgba(124,58,237,0.35), 0 4px 20px rgba(37,99,235,0.2)";
+            e.currentTarget.style.transform = "translateY(0)";
+          }}
+        >
+          {/* Shimmer */}
+          <span
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+            style={{
+              background:
+                "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.12) 50%, transparent 60%)",
+            }}
+          />
+          <span className="relative z-10 flex items-center gap-2">
+            Join Our Community!!
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </span>
+        </button>
+        <p className="mt-3 text-gray-500 text-sm">Free forever · No credit card required</p>
+      </div>
+
     </div>
   );
 }
