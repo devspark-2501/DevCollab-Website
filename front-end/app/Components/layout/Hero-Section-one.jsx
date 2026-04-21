@@ -19,7 +19,15 @@ export default function CommunitySection() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [memberCount, setMemberCount] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
   const autoPlayRef = useRef(null);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   useEffect(() => {
     fetch("/api/community")
@@ -49,41 +57,54 @@ export default function CommunitySection() {
     return () => clearInterval(autoPlayRef.current);
   }, [activeIndex]);
 
-  const slots = [-3, -2, -1, 0, 1, 2, 3].map((offset) => ({
+  // Desktop: 7 slots, Mobile: 3 slots
+  const visibleOffsets = isMobile ? [-1, 0, 1] : [-3, -2, -1, 0, 1, 2, 3];
+
+  const slots = visibleOffsets.map((offset) => ({
     index: getIndex(offset),
     offset,
     image: images[getIndex(offset)],
   }));
 
-  const slotStyles = {
+  const slotStylesDesktop = {
     "-3": { transform: "translateX(-295%) scale(0.58)", opacity: 0.25, zIndex: 1, filter: "blur(1.5px)" },
     "-2": { transform: "translateX(-195%) scale(0.70)", opacity: 0.45, zIndex: 2, filter: "blur(1px)" },
     "-1": { transform: "translateX(-105%) scale(0.82)", opacity: 0.70, zIndex: 3, filter: "blur(0px)" },
     "0":  { transform: "translateX(0%)    scale(1)",    opacity: 1,    zIndex: 10, filter: "blur(0px)" },
     "1":  { transform: "translateX(105%)  scale(0.82)", opacity: 0.70, zIndex: 3, filter: "blur(0px)" },
     "2":  { transform: "translateX(195%)  scale(0.70)", opacity: 0.45, zIndex: 2, filter: "blur(1px)" },
-    "3":  { transform: "translateX(295%)  scale(0.58)", opacity: 0.25, zIndex: 1, filter: "blur(1.5px)" ,
-    },
+    "3":  { transform: "translateX(295%)  scale(0.58)", opacity: 0.25, zIndex: 1, filter: "blur(1.5px)" },
   };
+
+  const slotStylesMobile = {
+    "-1": { transform: "translateX(-112%) scale(0.80)", opacity: 0.55, zIndex: 3, filter: "blur(0px)" },
+    "0":  { transform: "translateX(0%)    scale(1)",    opacity: 1,    zIndex: 10, filter: "blur(0px)" },
+    "1":  { transform: "translateX(112%)  scale(0.80)", opacity: 0.55, zIndex: 3, filter: "blur(0px)" },
+  };
+
+  const slotStyles = isMobile ? slotStylesMobile : slotStylesDesktop;
+
+  // Card width: wider on mobile so the center card is readable
+  const cardWidth = isMobile ? "clamp(220px, 72vw, 340px)" : "clamp(240px, 30vw, 420px)";
 
   return (
     <div className="min-h-screen bg-[#0b0f1a] relative overflow-hidden flex flex-col items-center justify-center py-24 px-6">
 
       {/* Glow Effects */}
-      <div className="absolute top-[-150px] right-[-150px] w-[400px] h-[400px] bg-blue-500 opacity-20 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-[-150px] left-[-150px] w-[400px] h-[400px] bg-purple-600 opacity-20 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-indigo-600 opacity-10 blur-[140px] rounded-full pointer-events-none" />
+      <div className="absolute top-[-150px] right-[-150px] w-[300px] h-[300px] md:w-[400px] md:h-[400px] bg-blue-500 opacity-20 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-[-150px] left-[-150px] w-[300px] h-[300px] md:w-[400px] md:h-[400px] bg-purple-600 opacity-20 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[200px] md:w-[600px] md:h-[300px] bg-indigo-600 opacity-10 blur-[140px] rounded-full pointer-events-none" />
 
       {/* Grid Background */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
 
       {/* Header */}
-      <div className="relative z-10 text-center mb-14 max-w-2xl">
+      <div className="relative z-10 text-center mb-14 max-w-2xl px-4">
         <span className="inline-block px-4 py-1 text-xs rounded-full bg-white/5 text-gray-400 border border-white/10 backdrop-blur tracking-widest uppercase mb-5">
           Meet The People
         </span>
         <h2
-          className="text-5xl md:text-6xl font-black text-white leading-tight"
+          className="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-tight"
           style={{
             fontFamily: "'Syne', 'Space Grotesk', sans-serif",
             letterSpacing: "-0.02em",
@@ -100,14 +121,13 @@ export default function CommunitySection() {
             Community
           </span>
         </h2>
-        <p className="mt-4 text-gray-400 text-base leading-relaxed">
+        <p className="mt-4 text-gray-400 text-sm md:text-base leading-relaxed">
           Thousands of developers, designers, and builders — all in one place.
           Share ideas, ship products, and grow together.
         </p>
 
         {/* Stat pills */}
         <div className="mt-6 flex items-center justify-center gap-4 flex-wrap">
-          {/* Live member count from DB */}
           <div className="px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur flex items-center gap-2">
             <span
               className="text-sm font-bold"
@@ -125,14 +145,12 @@ export default function CommunitySection() {
             </span>
             <span className="text-gray-400 text-xs">Members</span>
           </div>
-
-
         </div>
       </div>
 
       {/* Slider */}
       <div className="relative z-10 w-full max-w-6xl">
-        <div className="relative h-[260px] md:h-[300px] flex items-center justify-center">
+        <div className="relative h-[200px] md:h-[260px] lg:h-[300px] flex items-center justify-center overflow-hidden">
           {slots.map(({ index, offset, image }) => {
             const style = slotStyles[String(offset)];
             const isCenter = offset === 0;
@@ -142,7 +160,7 @@ export default function CommunitySection() {
                 onClick={() => !isCenter && goTo(index)}
                 style={{
                   position: "absolute",
-                  width: "clamp(240px, 30vw, 420px)",
+                  width: cardWidth,
                   aspectRatio: "16/9",
                   borderRadius: "10px",
                   overflow: "hidden",
@@ -173,17 +191,17 @@ export default function CommunitySection() {
         {/* Nav Arrows */}
         <button
           onClick={prev}
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 z-20 w-10 h-10 rounded-full bg-white/5 border border-white/10 backdrop-blur flex items-center justify-center text-white hover:bg-white/10 transition"
+          className="absolute left-1 md:left-0 top-1/2 -translate-y-1/2 md:-translate-x-2 z-20 w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/5 border border-white/10 backdrop-blur flex items-center justify-center text-white hover:bg-white/10 transition"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6" />
           </svg>
         </button>
         <button
           onClick={next}
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 z-20 w-10 h-10 rounded-full bg-white/5 border border-white/10 backdrop-blur flex items-center justify-center text-white hover:bg-white/10 transition"
+          className="absolute right-1 md:right-0 top-1/2 -translate-y-1/2 md:translate-x-2 z-20 w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/5 border border-white/10 backdrop-blur flex items-center justify-center text-white hover:bg-white/10 transition"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="9 18 15 12 9 6" />
           </svg>
         </button>
@@ -209,9 +227,9 @@ export default function CommunitySection() {
       </div>
 
       {/* CTA Button */}
-      <div className="relative z-10 mt-12 text-center">
+      <div className="relative z-10 mt-12 text-center px-4">
         <button
-          className="relative px-10 py-4 rounded-xl text-white font-semibold text-base overflow-hidden group transition-all duration-300"
+          className="relative px-8 md:px-10 py-3 md:py-4 rounded-xl text-white font-semibold text-sm md:text-base overflow-hidden group transition-all duration-300"
           style={{
             background: "linear-gradient(135deg, #7c3aed, #2563eb)",
             boxShadow: "0 0 30px rgba(124,58,237,0.35), 0 4px 20px rgba(37,99,235,0.2)",
@@ -219,22 +237,18 @@ export default function CommunitySection() {
             letterSpacing: "0.01em",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.boxShadow =
-              "0 0 50px rgba(124,58,237,0.55), 0 8px 30px rgba(37,99,235,0.35)";
+            e.currentTarget.style.boxShadow = "0 0 50px rgba(124,58,237,0.55), 0 8px 30px rgba(37,99,235,0.35)";
             e.currentTarget.style.transform = "translateY(-2px)";
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.boxShadow =
-              "0 0 30px rgba(124,58,237,0.35), 0 4px 20px rgba(37,99,235,0.2)";
+            e.currentTarget.style.boxShadow = "0 0 30px rgba(124,58,237,0.35), 0 4px 20px rgba(37,99,235,0.2)";
             e.currentTarget.style.transform = "translateY(0)";
           }}
         >
-          {/* Shimmer */}
           <span
             className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
             style={{
-              background:
-                "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.12) 50%, transparent 60%)",
+              background: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.12) 50%, transparent 60%)",
             }}
           />
           <span className="relative z-10 flex items-center gap-2">
