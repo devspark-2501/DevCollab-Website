@@ -5,96 +5,14 @@ import Link from "next/link";
 import { signOut } from "next-auth/react";
 
 const NAV = [
-  { id: "home",   label: "Home",   href: "/",         icon: <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/> },
-  { id: "post",   label: "Post",   href: null,        icon: <><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></> },
-  { id: "people", label: "People", href: null,        icon: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></> },
-  { id: "code",   label: "Code",   href: null,        icon: <><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></> },
-];
-
-const SEED_REVIEWS = [
-  {
-    id: 1,
-    name: "Tanush Mathur",
-    role: "Full Stack Developer",
-    avatar: "PS",
-    color: "bg-purple-500/20 text-purple-300 border-purple-500/30",
-    rating: 5,
-    text: "DevCollab changed how I build side projects. Found my co-founder here after just two weeks of posting. The community is genuinely supportive — no ego, just builders helping builders.",
-    tag: "Collaboration",
-    date: "Apr 12, 2025",
-    likes: 34,
-  },
-  {
-    id: 2,
-    name: "Marcus Webb",
-    role: "Systems Engineer",
-    avatar: "MW",
-    color: "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
-    rating: 5,
-    text: "I shipped my first open-source tool thanks to feedback I got here. People actually read your code and give real suggestions, not just copy-paste Stack Overflow answers.",
-    tag: "Open Source",
-    date: "Apr 8, 2025",
-    likes: 28,
-  },
-  {
-    id: 3,
-    name: "Aiko Tanaka",
-    role: "ML Engineer",
-    avatar: "AT",
-    color: "bg-rose-500/20 text-rose-300 border-rose-500/30",
-    rating: 4,
-    text: "The ML discussions here are miles ahead of Reddit. Found a collaborator for my computer vision project within 48 hours. Would love more structured channels but overall incredible.",
-    tag: "Machine Learning",
-    date: "Mar 30, 2025",
-    likes: 19,
-  },
-  {
-    id: 4,
-    name: "Devon Okafor",
-    role: "Frontend Developer",
-    avatar: "DO",
-    color: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
-    rating: 5,
-    text: "Joined during a hackathon and stayed forever. The talent density is insane — I've learned more in 3 months here than in a year of solo grinding.",
-    tag: "Frontend",
-    date: "Mar 22, 2025",
-    likes: 41,
-  },
-//   {
-//     id: 5,
-//     name: "Lena Kovač",
-//     role: "DevOps & Cloud",
-//     avatar: "LK",
-//     color: "bg-amber-500/20 text-amber-300 border-amber-500/30",
-//     rating: 4,
-//     text: "Finally a place where infra talks are welcomed. Got help debugging a Kubernetes networking issue in under an hour. Solid community, very low noise-to-signal ratio.",
-//     tag: "DevOps",
-//     date: "Mar 15, 2025",
-//     likes: 22,
-//   },
-//   {
-//     id: 6,
-//     name: "Rajan Mehta",
-//     role: "Backend Engineer",
-//     avatar: "RM",
-//     color: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-//     rating: 5,
-//     text: "Been part of online dev communities since 2015 and this one genuinely feels different. Less gatekeeping, more mentorship. The async culture is perfect for timezone-distributed teams.",
-//     tag: "Backend",
-//     date: "Mar 10, 2025",
-//     likes: 37,
-//   },
+  { id: "home",   label: "Home",   href: "/",  icon: <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/> },
+  { id: "post",   label: "Post",   href: null, icon: <><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></> },
+  { id: "people", label: "People", href: null, icon: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></> },
+  { id: "code",   label: "Code",   href: null, icon: <><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></> },
 ];
 
 const TAGS = ["General", "Frontend", "Backend", "ML", "DevOps", "Open Source", "Collaboration", "Systems", "Other"];
-const AVATAR_COLORS = [
-  "bg-blue-500/20 text-blue-300 border-blue-500/30",
-  "bg-purple-500/20 text-purple-300 border-purple-500/30",
-  "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
-  "bg-rose-500/20 text-rose-300 border-rose-500/30",
-  "bg-amber-500/20 text-amber-300 border-amber-500/30",
-  "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
-];
+const EMPTY_FORM = { name: "", role: "", text: "", rating: 0, tag: "General" };
 
 const Icon = ({ size = 17, children }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -102,6 +20,7 @@ const Icon = ({ size = 17, children }) => (
   </svg>
 );
 
+// ── Sidebar ──────────────────────────────────────────────────────────────────
 function Sidebar({ expanded, onToggle, active, onNav, mobileOpen, onMobileClose }) {
   return (
     <>
@@ -120,24 +39,17 @@ function Sidebar({ expanded, onToggle, active, onNav, mobileOpen, onMobileClose 
             <Icon size={11}>{expanded ? <polyline points="15 18 9 12 15 6"/> : <polyline points="9 18 15 12 9 6"/>}</Icon>
           </button>
         </div>
-
         <nav className="flex-1 flex flex-col gap-0.5">
           {NAV.map(({ id, label, href, icon }) => {
             const cls = `flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer text-[13.5px] font-normal border transition-all no-underline
               ${expanded ? "" : "justify-center"}
               ${active === id ? "bg-[#161c2e] text-[#8ba4f5] border-[#1e2a4a] font-medium" : "text-[#5a5f72] border-transparent hover:bg-[#161820] hover:text-[#c8cad4]"}`;
-            const content = (
-              <>
-                <Icon>{icon}</Icon>
-                {expanded && <span>{label}</span>}
-              </>
-            );
+            const content = <><Icon>{icon}</Icon>{expanded && <span>{label}</span>}</>;
             return href
               ? <Link key={id} href={href} className={cls} onClick={() => { onNav(id); onMobileClose(); }}>{content}</Link>
               : <div key={id} className={cls} onClick={() => { onNav(id); onMobileClose(); }}>{content}</div>;
           })}
         </nav>
-
         <hr className="border-[#1a1c23] my-3" />
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
@@ -155,6 +67,7 @@ function Sidebar({ expanded, onToggle, active, onNav, mobileOpen, onMobileClose 
   );
 }
 
+// ── Star Rating ───────────────────────────────────────────────────────────────
 function StarRating({ value, onChange }) {
   const [hovered, setHovered] = useState(0);
   return (
@@ -168,7 +81,11 @@ function StarRating({ value, onChange }) {
           onMouseLeave={() => setHovered(0)}
           className="transition-transform hover:scale-110"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill={star <= (hovered || value) ? "#f59e0b" : "none"} stroke={star <= (hovered || value) ? "#f59e0b" : "#3a3d4a"} strokeWidth="1.8">
+          <svg width="20" height="20" viewBox="0 0 24 24"
+            fill={star <= (hovered || value) ? "#f59e0b" : "none"}
+            stroke={star <= (hovered || value) ? "#f59e0b" : "#3a3d4a"}
+            strokeWidth="1.8"
+          >
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
           </svg>
         </button>
@@ -177,7 +94,12 @@ function StarRating({ value, onChange }) {
   );
 }
 
+// ── Review Card ───────────────────────────────────────────────────────────────
 function ReviewCard({ review, onLike }) {
+  const date = review.createdAt
+    ? new Date(review.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    : review.date ?? "";
+
   return (
     <div className="bg-[#13161f] border border-[#1e2029] rounded-xl p-5 flex flex-col gap-3 hover:border-[#2a3060] transition-all group">
       {/* Header */}
@@ -199,7 +121,11 @@ function ReviewCard({ review, onLike }) {
       {/* Stars */}
       <div className="flex gap-0.5">
         {[1,2,3,4,5].map(s => (
-          <svg key={s} width="13" height="13" viewBox="0 0 24 24" fill={s <= review.rating ? "#f59e0b" : "none"} stroke={s <= review.rating ? "#f59e0b" : "#2e3244"} strokeWidth="1.8">
+          <svg key={s} width="13" height="13" viewBox="0 0 24 24"
+            fill={s <= review.rating ? "#f59e0b" : "none"}
+            stroke={s <= review.rating ? "#f59e0b" : "#2e3244"}
+            strokeWidth="1.8"
+          >
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
           </svg>
         ))}
@@ -210,9 +136,9 @@ function ReviewCard({ review, onLike }) {
 
       {/* Footer */}
       <div className="flex items-center justify-between pt-1 border-t border-[#191b24]">
-        <span className="text-[11px] text-[#2e3244]">{review.date}</span>
+        <span className="text-[11px] text-[#2e3244]">{date}</span>
         <button
-          onClick={() => onLike(review.id)}
+          onClick={() => onLike(review._id)}
           className="flex items-center gap-1.5 text-[11px] text-[#3a4470] hover:text-[#8ba4f5] transition-colors group/like"
         >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover/like:scale-110 transition-transform">
@@ -225,57 +151,105 @@ function ReviewCard({ review, onLike }) {
   );
 }
 
-const EMPTY_FORM = { name: "", role: "", text: "", rating: 0, tag: "General" };
-
+// ── Main Page ─────────────────────────────────────────────────────────────────
 export default function CommunityPage() {
-  const [expanded, setExpanded]               = useState(true);
-  const [activeNav, setActiveNav]             = useState("people");
+  const [expanded, setExpanded]                   = useState(true);
+  const [activeNav, setActiveNav]                 = useState("people");
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [reviews, setReviews]                 = useState(SEED_REVIEWS);
-  const [form, setForm]                       = useState(EMPTY_FORM);
-  const [formError, setFormError]             = useState("");
-  const [submitted, setSubmitted]             = useState(false);
-  const [mounted, setMounted]                 = useState(false);
+  const [reviews, setReviews]                     = useState([]);
+  const [loadingReviews, setLoadingReviews]       = useState(true);
+  const [fetchError, setFetchError]               = useState("");
+  const [form, setForm]                           = useState(EMPTY_FORM);
+  const [formError, setFormError]                 = useState("");
+  const [submitting, setSubmitting]               = useState(false);
+  const [submitted, setSubmitted]                 = useState(false);
+  const [mounted, setMounted]                     = useState(false);
   const formRef = useRef(null);
 
   useEffect(() => { const t = setTimeout(() => setMounted(true), 60); return () => clearTimeout(t); }, []);
 
-  const handleLike = (id) => {
-    setReviews(prev => prev.map(r => r.id === id ? { ...r, likes: r.likes + 1 } : r));
+  // ── Fetch reviews from DB on mount
+  useEffect(() => {
+    const load = async () => {
+      setLoadingReviews(true);
+      setFetchError("");
+      try {
+        const res  = await fetch("/api/review/community");
+        const data = await res.json();
+        if (data.success) {
+          setReviews(data.reviews);
+        } else {
+          setFetchError(data.message || "Failed to load reviews.");
+        }
+      } catch {
+        setFetchError("Network error — could not load reviews.");
+      } finally {
+        setLoadingReviews(false);
+      }
+    };
+    load();
+  }, []);
+
+  // ── Like a review (PATCH)
+  const handleLike = async (id) => {
+    // Optimistic update
+    setReviews(prev => prev.map(r => r._id === id ? { ...r, likes: r.likes + 1 } : r));
+    try {
+      await fetch("/api/review/community", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+    } catch {
+      // Silently revert if needed — keep it simple
+    }
   };
 
-  const handleSubmit = (e) => {
+  // ── Submit new review (POST)
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.name.trim()) return setFormError("Please enter your name.");
-    if (!form.role.trim()) return setFormError("Please enter your role.");
-    if (form.rating === 0)  return setFormError("Please give a star rating.");
+    if (!form.name.trim())            return setFormError("Please enter your name.");
+    if (!form.role.trim())            return setFormError("Please enter your role.");
+    if (form.rating === 0)            return setFormError("Please give a star rating.");
     if (form.text.trim().length < 20) return setFormError("Review must be at least 20 characters.");
 
     setFormError("");
-    const initials = form.name.trim().split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
-    const color = AVATAR_COLORS[form.name.charCodeAt(0) % AVATAR_COLORS.length];
-    const newReview = {
-      id: Date.now(),
-      name: form.name.trim(),
-      role: form.role.trim(),
-      avatar: initials,
-      color,
-      rating: form.rating,
-      text: form.text.trim(),
-      tag: form.tag,
-      date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-      likes: 0,
-    };
-    setReviews(prev => [newReview, ...prev]);
-    setForm(EMPTY_FORM);
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
+    setSubmitting(true);
+
+    try {
+      const res  = await fetch("/api/review/community", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({
+          name:   form.name,
+          role:   form.role,
+          rating: form.rating,
+          text:   form.text,
+          tag:    form.tag,
+        }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setReviews(prev => [data.review, ...prev]);
+        setForm(EMPTY_FORM);
+        setSubmitted(true);
+        setTimeout(() => setSubmitted(false), 3000);
+      } else {
+        setFormError(data.message || "Something went wrong.");
+      }
+    } catch {
+      setFormError("Network error — please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const avgRating = (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1);
+  const avgRating = reviews.length
+    ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
+    : "—";
 
-  const fadeUp = (delay = 0) =>
-    `transition-all duration-500 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`;
+  const fadeIn = `transition-all duration-500 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`;
 
   return (
     <div className="min-h-screen bg-[#0b0f1a] flex text-[#e2e4ec] font-[DM_Sans,system-ui,sans-serif]">
@@ -291,7 +265,7 @@ export default function CommunityPage() {
 
       <div className="flex-1 overflow-y-auto min-w-0 relative">
 
-        {/* Background glows */}
+        {/* Glows + grid */}
         <div className="absolute top-[-80px] right-[-80px] w-[420px] h-[420px] bg-blue-500 opacity-[0.07] blur-[120px] rounded-full pointer-events-none" />
         <div className="absolute bottom-0 left-[-80px] w-[400px] h-[400px] bg-purple-600 opacity-[0.07] blur-[120px] rounded-full pointer-events-none" />
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
@@ -314,7 +288,7 @@ export default function CommunityPage() {
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-8 py-10 sm:py-14">
 
           {/* ── HERO ── */}
-          <div className={`mb-12 ${fadeUp()} transition-all duration-500 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+          <div className={`mb-12 ${fadeIn}`}>
             <div className="flex items-center gap-2 mb-4">
               <span className="inline-block px-3 py-1 text-[11px] rounded-full bg-[#1d2b5c]/60 text-[#8ba4f5] border border-[#2a3a7a]/50 tracking-wide">
                 DevCollab Community
@@ -335,13 +309,13 @@ export default function CommunityPage() {
               just builders who show up and make things.
             </p>
 
-            {/* Stats strip */}
+            {/* Live stats */}
             <div className="flex flex-wrap gap-3">
               {[
-                { val: reviews.length.toString(), label: "Reviews" },
-                { val: avgRating + " ★", label: "Avg rating" },
-                { val: "2.4k+", label: "Members" },
-                { val: "180+", label: "Projects built" },
+                { val: loadingReviews ? "…" : reviews.length.toString(), label: "Reviews" },
+                { val: loadingReviews ? "…" : avgRating + " ★",          label: "Avg rating" },
+                { val: "2.4k+",                                           label: "Members" },
+                { val: "180+",                                            label: "Projects built" },
               ].map(s => (
                 <div key={s.label} className="px-4 py-2.5 rounded-xl bg-[#13161f] border border-[#1e2029] text-center min-w-[90px]">
                   <div className="text-[16px] font-semibold text-[#ebedf5] font-mono">{s.val}</div>
@@ -351,26 +325,69 @@ export default function CommunityPage() {
             </div>
           </div>
 
-          {/* ── DIVIDER ── */}
           <div className="border-t border-[#1e2029] mb-10" />
 
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 items-start">
 
-            {/* ── LEFT: Reviews list ── */}
+            {/* ── LEFT: Reviews ── */}
             <div>
               <div className="flex items-center justify-between mb-5">
                 <h2 className="text-[15px] font-semibold text-[#ebedf5]">Community Reviews</h2>
-                <span className="text-[11px] text-[#3a4470]">{reviews.length} total</span>
+                <span className="text-[11px] text-[#3a4470]">
+                  {loadingReviews ? "Loading…" : `${reviews.length} total`}
+                </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {reviews.map(r => (
-                  <ReviewCard key={r.id} review={r} onLike={handleLike} />
-                ))}
-              </div>
+              {/* Loading skeleton */}
+              {loadingReviews && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[1,2,3,4].map(i => (
+                    <div key={i} className="bg-[#13161f] border border-[#1e2029] rounded-xl p-5 h-[180px] animate-pulse">
+                      <div className="flex gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-xl bg-[#1e2029]" />
+                        <div className="flex-1 space-y-2 pt-1">
+                          <div className="h-2.5 bg-[#1e2029] rounded w-2/3" />
+                          <div className="h-2 bg-[#1e2029] rounded w-1/3" />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="h-2 bg-[#1e2029] rounded w-full" />
+                        <div className="h-2 bg-[#1e2029] rounded w-5/6" />
+                        <div className="h-2 bg-[#1e2029] rounded w-4/6" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Fetch error */}
+              {!loadingReviews && fetchError && (
+                <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-[13px]">
+                  {fetchError}
+                </div>
+              )}
+
+              {/* Empty state */}
+              {!loadingReviews && !fetchError && reviews.length === 0 && (
+                <div className="text-center py-14 text-[#2e3244]">
+                  <svg className="mx-auto mb-3 opacity-30" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  </svg>
+                  <p className="text-[14px]">No reviews yet — be the first!</p>
+                </div>
+              )}
+
+              {/* Cards */}
+              {!loadingReviews && !fetchError && reviews.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {reviews.map(r => (
+                    <ReviewCard key={r._id} review={r} onLike={handleLike} />
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* ── RIGHT: Add review form ── */}
+            {/* ── RIGHT: Form ── */}
             <div className="lg:sticky lg:top-6">
               <div className="bg-[#13161f] border border-[#1e2029] rounded-xl p-5">
                 <p className="text-[10px] font-semibold tracking-widest uppercase text-[#2e3244] mb-1">Share your experience</p>
@@ -447,19 +464,30 @@ export default function CommunityPage() {
 
                     <button
                       type="submit"
-                      className="w-full py-2.5 rounded-lg text-[13px] font-medium bg-[#1d2b5c] border border-[#2a3a7a] text-[#8ba4f5] hover:bg-[#22336e] transition-colors flex items-center justify-center gap-2"
+                      disabled={submitting}
+                      className="w-full py-2.5 rounded-lg text-[13px] font-medium bg-[#1d2b5c] border border-[#2a3a7a] text-[#8ba4f5] hover:bg-[#22336e] transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                      </svg>
-                      Post Review
+                      {submitting ? (
+                        <>
+                          <svg className="animate-spin" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                          </svg>
+                          Posting…
+                        </>
+                      ) : (
+                        <>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                          </svg>
+                          Post Review
+                        </>
+                      )}
                     </button>
 
                   </form>
                 )}
               </div>
 
-              {/* Small community note */}
               <div className="mt-4 px-4 py-3.5 rounded-xl bg-[#13161f] border border-[#1e2029]">
                 <p className="text-[11px] text-[#3a4470] leading-relaxed">
                   All reviews are from real community members. We believe in honest, constructive feedback that helps everyone grow.
