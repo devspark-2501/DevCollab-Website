@@ -17,35 +17,50 @@ const Icon = ({ d, size = 17, children }) => (
   </svg>
 );
 
-function Sidebar({ expanded, onToggle, active, onNav }) {
+function Sidebar({ expanded, onToggle, active, onNav, mobileOpen, onMobileClose }) {
   return (
-    <aside className={`flex flex-col bg-[#0d0f14] border-r border-[#1e2029] p-3 transition-all duration-300 ${expanded ? "w-[220px]" : "w-[60px]"}`}>
-      <div className={`flex items-center mb-5 ${expanded ? "justify-between" : "justify-center"}`}>
-        {expanded && <span className="text-[10px] font-semibold tracking-widest uppercase text-[#3a3d4a] px-2">Menu</span>}
-        <button onClick={onToggle} className="w-7 h-7 flex items-center justify-center rounded-md border border-[#1e2029] text-[#3a3d4a] hover:bg-[#161820] hover:text-[#8ba4f5] transition-colors">
-          <Icon size={11}>{expanded ? <polyline points="15 18 9 12 15 6"/> : <polyline points="9 18 15 12 9 6"/>}</Icon>
+    <>
+      {/* Mobile overlay backdrop */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-20 bg-black/50 md:hidden"
+          onClick={onMobileClose}
+        />
+      )}
+
+      <aside className={`
+        flex flex-col bg-[#0d0f14] border-r border-[#1e2029] p-3 transition-all duration-300
+        fixed inset-y-0 left-0 z-30 md:relative md:z-auto
+        ${mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+        ${expanded ? "w-[220px]" : "w-[60px]"}
+      `}>
+        <div className={`flex items-center mb-5 ${expanded ? "justify-between" : "justify-center"}`}>
+          {expanded && <span className="text-[10px] font-semibold tracking-widest uppercase text-[#3a3d4a] px-2">Menu</span>}
+          <button onClick={onToggle} className="w-7 h-7 flex items-center justify-center rounded-md border border-[#1e2029] text-[#3a3d4a] hover:bg-[#161820] hover:text-[#8ba4f5] transition-colors">
+            <Icon size={11}>{expanded ? <polyline points="15 18 9 12 15 6"/> : <polyline points="9 18 15 12 9 6"/>}</Icon>
+          </button>
+        </div>
+
+        <nav className="flex-1 flex flex-col gap-0.5">
+          {NAV.map(({ id, label, href, icon }) => {
+            const cls = `flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer text-[13.5px] font-normal border transition-all no-underline
+              ${expanded ? "" : "justify-center"}
+              ${active === id ? "bg-[#161c2e] text-[#8ba4f5] border-[#1e2a4a] font-medium" : "text-[#5a5f72] border-transparent hover:bg-[#161820] hover:text-[#c8cad4]"}`;
+            const content = <><Icon>{icon}</Icon>{expanded && <span>{label}</span>}</>;
+            return href
+              ? <Link key={id} href={href} className={cls} onClick={() => { onNav(id); onMobileClose(); }}>{content}</Link>
+              : <div key={id} className={cls} onClick={() => { onNav(id); onMobileClose(); }}>{content}</div>;
+          })}
+        </nav>
+
+        <hr className="border-[#1a1c23] my-3" />
+        <button onClick={() => signOut({ callbackUrl: "/login" })}
+          className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13.5px] text-[#5a3a3a] border border-transparent hover:bg-[#1c1414] hover:text-[#e05a5a] hover:border-[#2a1818] transition-all ${expanded ? "" : "justify-center"}`}>
+          <Icon size={16}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></Icon>
+          {expanded && <span>Sign out</span>}
         </button>
-      </div>
-
-      <nav className="flex-1 flex flex-col gap-0.5">
-        {NAV.map(({ id, label, href, icon }) => {
-          const cls = `flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer text-[13.5px] font-normal border transition-all no-underline
-            ${expanded ? "" : "justify-center"}
-            ${active === id ? "bg-[#161c2e] text-[#8ba4f5] border-[#1e2a4a] font-medium" : "text-[#5a5f72] border-transparent hover:bg-[#161820] hover:text-[#c8cad4]"}`;
-          const content = <><Icon>{icon}</Icon>{expanded && <span>{label}</span>}</>;
-          return href
-            ? <Link key={id} href={href} className={cls} onClick={() => onNav(id)}>{content}</Link>
-            : <div key={id} className={cls} onClick={() => onNav(id)}>{content}</div>;
-        })}
-      </nav>
-
-      <hr className="border-[#1a1c23] my-3" />
-      <button onClick={() => signOut({ callbackUrl: "/login" })}
-        className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13.5px] text-[#5a3a3a] border border-transparent hover:bg-[#1c1414] hover:text-[#e05a5a] hover:border-[#2a1818] transition-all ${expanded ? "" : "justify-center"}`}>
-        <Icon size={16}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></Icon>
-        {expanded && <span>Sign out</span>}
-      </button>
-    </aside>
+      </aside>
+    </>
   );
 }
 
@@ -59,6 +74,7 @@ export default function ProfileLayout({
   const [mounted, setMounted] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const [activeNav, setActiveNav] = useState("home");
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   useEffect(() => { const t = setTimeout(() => setMounted(true), 80); return () => clearTimeout(t); }, []);
 
@@ -69,54 +85,76 @@ export default function ProfileLayout({
 
   return (
     <div className="flex min-h-screen bg-[#111318] text-[#e2e4ec] font-[DM_Sans,system-ui,sans-serif]">
-      <Sidebar expanded={sidebarExpanded} onToggle={() => setSidebarExpanded(v => !v)} active={activeNav} onNav={setActiveNav} />
+      <Sidebar
+        expanded={sidebarExpanded}
+        onToggle={() => setSidebarExpanded(v => !v)}
+        active={activeNav}
+        onNav={setActiveNav}
+        mobileOpen={mobileSidebarOpen}
+        onMobileClose={() => setMobileSidebarOpen(false)}
+      />
 
-      <div className="flex-1 overflow-y-auto flex flex-col">
+      <div className="flex-1 overflow-y-auto flex flex-col min-w-0">
+        {/* Mobile top bar */}
+        <div className="flex items-center gap-3 px-4 py-3 bg-[#0d0f14] border-b border-[#1e2029] md:hidden">
+          <button
+            onClick={() => setMobileSidebarOpen(true)}
+            className="w-8 h-8 flex items-center justify-center rounded-md border border-[#1e2029] text-[#3a3d4a] hover:bg-[#161820] hover:text-[#8ba4f5] transition-colors"
+          >
+            <Icon size={14}>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="18" x2="21" y2="18"/>
+            </Icon>
+          </button>
+          <span className="text-[13px] font-medium text-[#8ba4f5]">Profile</span>
+        </div>
+
         {/* Cover */}
-        <div className="h-[180px] shrink-0 bg-[#13161f] border-b border-[#1e2029] relative overflow-hidden">
+        <div className="h-[120px] sm:h-[180px] shrink-0 bg-[#13161f] border-b border-[#1e2029] relative overflow-hidden">
           <div className="absolute inset-0 opacity-50" style={{ backgroundImage: "linear-gradient(#1e2029 1px,transparent 1px),linear-gradient(90deg,#1e2029 1px,transparent 1px)", backgroundSize: "32px 32px" }} />
           <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-b from-transparent to-[#111318]" />
         </div>
 
-        <div className="max-w-[820px] w-full mx-auto px-8 pb-16">
+        <div className="max-w-[820px] w-full mx-auto px-4 sm:px-8 pb-16">
           {/* Header */}
-          <div className={`flex items-end justify-between -mt-12 mb-8 flex-wrap gap-4 ${fadeUp}`} style={{ transitionDelay: "0.05s" }}>
-            <div className="flex items-end gap-4">
+          <div className={`flex items-end justify-between -mt-10 sm:-mt-12 mb-8 flex-wrap gap-4 ${fadeUp}`} style={{ transitionDelay: "0.05s" }}>
+            <div className="flex items-end gap-3 sm:gap-4">
               <div className="relative">
                 {image
-                  ? <img src={image} alt="avatar" className="w-24 h-24 rounded-full border-[3px] border-[#111318] outline outline-[1.5px] outline-[#2a2e3e] object-cover" />
-                  : <div className="w-24 h-24 rounded-full border-[3px] border-[#111318] outline outline-[1.5px] outline-[#2a2e3e] bg-[#1a1d28] flex items-center justify-center text-4xl font-semibold text-[#8ba4f5] font-mono">{name?.charAt(0).toUpperCase()}</div>
+                  ? <img src={image} alt="avatar" className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-[3px] border-[#111318] outline outline-[1.5px] outline-[#2a2e3e] object-cover" />
+                  : <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-[3px] border-[#111318] outline outline-[1.5px] outline-[#2a2e3e] bg-[#1a1d28] flex items-center justify-center text-3xl sm:text-4xl font-semibold text-[#8ba4f5] font-mono">{name?.charAt(0).toUpperCase()}</div>
                 }
                 <div className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full bg-green-500 border-[2.5px] border-[#111318]" />
               </div>
               <div className="pb-1.5">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[22px] font-semibold text-[#ebedf5] tracking-tight">{name}</span>
+                  <span className="text-[18px] sm:text-[22px] font-semibold text-[#ebedf5] tracking-tight">{name}</span>
                   <div className="w-[18px] h-[18px] rounded-full bg-[#1d2b5c] border border-[#2a3a7a] flex items-center justify-center">
                     <svg width="9" height="8" viewBox="0 0 11 9" fill="none"><path d="M1 4.5L4 7.5L10 1.5" stroke="#8ba4f5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   </div>
                 </div>
-                <p className="text-[13px] text-[#3f4357]">{email}</p>
+                <p className="text-[12px] sm:text-[13px] text-[#3f4357] truncate max-w-[180px] sm:max-w-none">{email}</p>
               </div>
             </div>
-            <div className="flex gap-2 pb-1.5">
-              <button className="px-4 py-2 rounded-lg text-[13px] font-medium bg-[#1d2b5c] border border-[#2a3a7a] text-[#8ba4f5] hover:bg-[#22336e] transition-colors">Edit Profile</button>
-              <button className="px-4 py-2 rounded-lg text-[13px] font-medium bg-transparent border border-[#1e2029] text-[#4a4f62] hover:bg-[#161820] hover:text-[#8ba4f5] transition-colors">Share</button>
+            <div className="flex gap-2 pb-1.5 w-full sm:w-auto">
+              <button className="flex-1 sm:flex-none px-4 py-2 rounded-lg text-[13px] font-medium bg-[#1d2b5c] border border-[#2a3a7a] text-[#8ba4f5] hover:bg-[#22336e] transition-colors">Edit Profile</button>
+              <button className="flex-1 sm:flex-none px-4 py-2 rounded-lg text-[13px] font-medium bg-transparent border border-[#1e2029] text-[#4a4f62] hover:bg-[#161820] hover:text-[#8ba4f5] transition-colors">Share</button>
             </div>
           </div>
 
           {/* Stats */}
           <div className={`grid grid-cols-3 gap-2 mb-6 ${fadeUp}`} style={{ transitionDelay: "0.12s" }}>
             {[{ num: "0", label: "Projects" }, { num: "0", label: "Followers" }, { num: "0", label: "Following" }].map(s => (
-              <div key={s.label} className="bg-[#13161f] border border-[#1e2029] rounded-xl p-4 text-center hover:border-[#2a3060] transition-colors cursor-default">
-                <div className="text-2xl font-semibold text-[#ebedf5] tracking-tight font-mono">{s.num}</div>
-                <div className="text-[11px] text-[#2e3244] font-medium mt-0.5 uppercase tracking-wider">{s.label}</div>
+              <div key={s.label} className="bg-[#13161f] border border-[#1e2029] rounded-xl p-3 sm:p-4 text-center hover:border-[#2a3060] transition-colors cursor-default">
+                <div className="text-xl sm:text-2xl font-semibold text-[#ebedf5] tracking-tight font-mono">{s.num}</div>
+                <div className="text-[10px] sm:text-[11px] text-[#2e3244] font-medium mt-0.5 uppercase tracking-wider">{s.label}</div>
               </div>
             ))}
           </div>
 
-          {/* Two col */}
-          <div className={`grid grid-cols-[260px_1fr] gap-4 items-start ${fadeUp}`} style={{ transitionDelay: "0.2s" }}>
+          {/* Two col → stacks on mobile */}
+          <div className={`grid grid-cols-1 md:grid-cols-[260px_1fr] gap-4 items-start ${fadeUp}`} style={{ transitionDelay: "0.2s" }}>
             {/* About */}
             <div className="bg-[#13161f] border border-[#1e2029] rounded-xl p-5">
               <p className="text-[10px] font-semibold tracking-widest uppercase text-[#2e3244] mb-4">About</p>
