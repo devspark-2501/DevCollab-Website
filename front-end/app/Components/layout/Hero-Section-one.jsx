@@ -1,18 +1,19 @@
 'use client'
+
 import { useState, useEffect, useRef } from "react";
 
 const images = [
-  { id: 1, src: "https://picsum.photos/seed/dev1/800/500", alt: "Community 1" },
-  { id: 2, src: "https://picsum.photos/seed/dev2/800/500", alt: "Community 2" },
-  { id: 3, src: "https://picsum.photos/seed/dev3/800/500", alt: "Community 3" },
-  { id: 4, src: "https://picsum.photos/seed/dev4/800/500", alt: "Community 4" },
-  { id: 5, src: "https://picsum.photos/seed/dev5/800/500", alt: "Community 5" },
-  { id: 6, src: "https://picsum.photos/seed/dev6/800/500", alt: "Community 6" },
-  { id: 7, src: "https://picsum.photos/seed/dev7/800/500", alt: "Community 7" },
-  { id: 8, src: "https://picsum.photos/seed/dev8/800/500", alt: "Community 8" },
-  { id: 9, src: "https://picsum.photos/seed/dev9/800/500", alt: "Community 9" },
-  { id: 10, src: "https://picsum.photos/seed/dev10/800/500", alt: "Community 10" },
-  { id: 11, src: "https://picsum.photos/seed/dev11/800/500", alt: "Community 11" },
+  { id: 1, src: "https://picsum.photos/seed/dev1/500/800", alt: "Community 1" },
+  { id: 2, src: "https://picsum.photos/seed/dev2/500/800", alt: "Community 2" },
+  { id: 3, src: "https://picsum.photos/seed/dev3/500/800", alt: "Community 3" },
+  { id: 4, src: "https://picsum.photos/seed/dev4/500/800", alt: "Community 4" },
+  { id: 5, src: "https://picsum.photos/seed/dev5/500/800", alt: "Community 5" },
+  { id: 6, src: "https://picsum.photos/seed/dev6/500/800", alt: "Community 6" },
+  { id: 7, src: "https://picsum.photos/seed/dev7/500/800", alt: "Community 7" },
+  { id: 8, src: "https://picsum.photos/seed/dev8/500/800", alt: "Community 8" },
+  { id: 9, src: "https://picsum.photos/seed/dev9/500/800", alt: "Community 9" },
+  { id: 10, src: "https://picsum.photos/seed/dev10/500/800", alt: "Community 10" },
+  { id: 11, src: "https://picsum.photos/seed/dev11/500/800", alt: "Community 11" },
 ];
 
 export default function CommunitySection() {
@@ -57,7 +58,6 @@ export default function CommunitySection() {
     return () => clearInterval(autoPlayRef.current);
   }, [activeIndex]);
 
-  // Desktop: 7 slots, Mobile: 3 slots
   const visibleOffsets = isMobile ? [-1, 0, 1] : [-3, -2, -1, 0, 1, 2, 3];
 
   const slots = visibleOffsets.map((offset) => ({
@@ -84,8 +84,7 @@ export default function CommunitySection() {
 
   const slotStyles = isMobile ? slotStylesMobile : slotStylesDesktop;
 
-  // Card width: wider on mobile so the center card is readable
-  const cardWidth = isMobile ? "clamp(220px, 72vw, 340px)" : "clamp(240px, 30vw, 420px)";
+  const cardWidth = isMobile ? "clamp(140px, 45vw, 200px)" : "clamp(140px, 16vw, 220px)";
 
   return (
     <div className="min-h-screen bg-[#0b0f1a] relative overflow-hidden flex flex-col items-center justify-center py-24 px-6">
@@ -150,7 +149,7 @@ export default function CommunitySection() {
 
       {/* Slider */}
       <div className="relative z-10 w-full max-w-6xl">
-        <div className="relative h-[200px] md:h-[260px] lg:h-[300px] flex items-center justify-center overflow-hidden">
+        <div className="relative h-[320px] md:h-[420px] lg:h-[480px] flex items-center justify-center overflow-hidden">
           {slots.map(({ index, offset, image }) => {
             const style = slotStyles[String(offset)];
             const isCenter = offset === 0;
@@ -161,7 +160,7 @@ export default function CommunitySection() {
                 style={{
                   position: "absolute",
                   width: cardWidth,
-                  aspectRatio: "16/9",
+                  aspectRatio: "9/16",
                   borderRadius: "10px",
                   overflow: "hidden",
                   transition: "transform 0.45s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.45s ease, filter 0.45s ease",
