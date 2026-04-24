@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { connectDB } from "@/database/db";
 import User from "@/database/models/user";
 // import ProfilePage from "../Components/layout/ProfilePage";
+import ProfilePage from "../Components/layout/ProfilePage";
 
 export const metadata = {
   title: "Dev Collab | Profile"

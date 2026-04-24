@@ -234,9 +234,9 @@ export default function ProfileLayout({
           className="relative bg-[#0b0f1a] border-t border-[#1e2029] min-h-[400px]"
         >
           {/* background glow + grid — same as community page */}
-          <div className="absolute top-[-80px] right-[-80px] w-[420px] h-[420px] bg-blue-500 opacity-[0.07] blur-[120px] rounded-full pointer-events-none" />
-          <div className="absolute bottom-0 left-[-80px] w-[400px] h-[400px] bg-purple-600 opacity-[0.07] blur-[120px] rounded-full pointer-events-none" />
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+          {/* <div className="absolute top-[-80px] right-[-80px] w-[420px] h-[420px] bg-blue-500 opacity-[0.07] blur-[120px] rounded-full pointer-events-none" /> */}
+          {/* <div className="absolute bottom-0 left-[-80px] w-[400px] h-[400px] bg-purple-600 opacity-[0.07] blur-[120px] rounded-full pointer-events-none" /> */}
+          {/* <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" /> */}
 
           <div className="relative z-10 max-w-[820px] w-full mx-auto px-4 sm:px-8 py-10">
 
