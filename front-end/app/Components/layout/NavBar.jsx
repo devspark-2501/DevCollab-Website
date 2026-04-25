@@ -97,8 +97,8 @@ export const NavBar = () => {
               Explore
             </Link>
 
-            <Link href="/projects" onClick={() => setMenuOpen(false)} className="hover:text-white transition">
-              Projects
+            <Link href="/Feed" onClick={() => setMenuOpen(false)} className="hover:text-white transition">
+              Posts
             </Link>
 
             <Link href="/Community" onClick={() => setMenuOpen(false)} className="hover:text-white transition">
