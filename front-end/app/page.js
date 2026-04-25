@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Hero_Section_One from "./Components/layout/Hero-Section-one";
 import { NavBar } from "./Components/layout/NavBar";
+import Hero_Section_Two from "./Components/layout/Hero-Section-Two";
 
 export default function Home() {
   const pathname = usePathname();
@@ -56,9 +57,11 @@ export default function Home() {
         </div>
       </div>
 
-      {/* NEW SECTION (separate, full width) */}
+      {/* NEW SECTION */}
       <Hero_Section_One />
 
+      {/* POST SECTION */}
+      <Hero_Section_Two />
     </div>
   );
 }
