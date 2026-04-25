@@ -20,24 +20,12 @@ const COLORS = [
 ];
 
 function getColor(name = "") {
-  const i = name.charCodeAt(0) % COLORS.length;
-  return COLORS[i];
+  return COLORS[name.charCodeAt(0) % COLORS.length];
 }
 
-function PostCard({ post, index }) {
-  const ref = useRef(null);
-  const [visible, setVisible] = useState(false);
+function PostCard({ post }) {
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(post.likes || 0);
-
-  useEffect(() => {
-    const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setVisible(true); },
-      { threshold: 0.15 }
-    );
-    if (ref.current) obs.observe(ref.current);
-    return () => obs.disconnect();
-  }, []);
 
   function handleLike() {
     if (liked) return;
@@ -49,17 +37,10 @@ function PostCard({ post, index }) {
   const initial  = post.userName?.charAt(0).toUpperCase() || "?";
 
   return (
-    <div
-      ref={ref}
-      style={{
-        transitionDelay: `${(index % 5) * 60}ms`,
-        opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0px)" : "translateY(28px)",
-        transition: "opacity 0.5s ease, transform 0.5s ease",
-      }}
-      className="bg-[#13161f] border border-[#1e2029] rounded-2xl p-5
-                 hover:border-[#2a3060] hover:bg-[#14172a] transition-colors group"
-    >
+    <div className="bg-[#13161f] border border-[#1e2029] rounded-2xl p-5 flex flex-col
+                    hover:border-[#2a3060] hover:bg-[#14172a] transition-colors
+                    w-[300px] sm:w-[340px] shrink-0 h-full">
+
       {/* header */}
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className="flex items-center gap-3">
@@ -85,8 +66,10 @@ function PostCard({ post, index }) {
       {/* divider */}
       <div className="border-t border-[#191b24] mb-4" />
 
-      {/* body */}
-      <p className="text-[13.5px] text-[#8a8fa8] leading-relaxed whitespace-pre-wrap break-words">
+      {/* body — clamp to 5 lines */}
+      <p className="text-[13.5px] text-[#8a8fa8] leading-relaxed whitespace-pre-wrap
+                    break-words flex-1 overflow-hidden"
+         style={{ display: "-webkit-box", WebkitLineClamp: 6, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
         {post.userContent}
       </p>
 
@@ -95,9 +78,10 @@ function PostCard({ post, index }) {
         <button
           onClick={handleLike}
           className={`flex items-center gap-1.5 text-[11.5px] transition-all
-            ${liked ? "text-[#8ba4f5] scale-110" : "text-[#3a4470] hover:text-[#8ba4f5]"}`}
+            ${liked ? "text-[#8ba4f5]" : "text-[#3a4470] hover:text-[#8ba4f5]"}`}
         >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill={liked ? "currentColor" : "none"}
+          <svg width="13" height="13" viewBox="0 0 24 24"
+               fill={liked ? "currentColor" : "none"}
                stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
           </svg>
@@ -115,7 +99,8 @@ function PostCard({ post, index }) {
 
 function SkeletonCard() {
   return (
-    <div className="bg-[#13161f] border border-[#1e2029] rounded-2xl p-5 animate-pulse">
+    <div className="bg-[#13161f] border border-[#1e2029] rounded-2xl p-5
+                    w-[300px] sm:w-[340px] shrink-0 animate-pulse">
       <div className="flex items-center gap-3 mb-4">
         <div className="w-9 h-9 rounded-xl bg-[#1e2029] shrink-0" />
         <div className="space-y-1.5 flex-1">
@@ -128,18 +113,27 @@ function SkeletonCard() {
         <div className="h-2.5 bg-[#1e2029] rounded w-full" />
         <div className="h-2.5 bg-[#1e2029] rounded w-5/6" />
         <div className="h-2.5 bg-[#1e2029] rounded w-3/4" />
+        <div className="h-2.5 bg-[#1e2029] rounded w-2/3" />
       </div>
     </div>
   );
 }
 
 export default function Hero_Section_Two() {
-  const [posts, setPosts]     = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState("");
-  const headerRef             = useRef(null);
+  const [posts, setPosts]               = useState([]);
+  const [loading, setLoading]           = useState(true);
+  const [error, setError]               = useState("");
   const [headerVisible, setHeaderVisible] = useState(false);
+  const [canScrollLeft, setCanScrollLeft]   = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const [isDragging, setIsDragging]     = useState(false);
+  const [dragStart, setDragStart]       = useState(0);
+  const [scrollStart, setScrollStart]   = useState(0);
 
+  const headerRef  = useRef(null);
+  const scrollRef  = useRef(null);
+
+  // ── header intersection
   useEffect(() => {
     const obs = new IntersectionObserver(
       ([e]) => { if (e.isIntersecting) setHeaderVisible(true); },
@@ -149,6 +143,7 @@ export default function Hero_Section_Two() {
     return () => obs.disconnect();
   }, []);
 
+  // ── fetch posts
   useEffect(() => {
     fetch("/api/community/post")
       .then((r) => r.json())
@@ -157,18 +152,65 @@ export default function Hero_Section_Two() {
       .finally(() => setLoading(false));
   }, []);
 
+  // ── update arrow visibility
+  function updateArrows() {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 10);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
+  }
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    updateArrows();
+    el.addEventListener("scroll", updateArrows, { passive: true });
+    window.addEventListener("resize", updateArrows);
+    return () => {
+      el.removeEventListener("scroll", updateArrows);
+      window.removeEventListener("resize", updateArrows);
+    };
+  }, [posts, loading]);
+
+  // ── arrow scroll — moves exactly 2 cards
+  function scrollBy(dir) {
+    const el = scrollRef.current;
+    if (!el) return;
+    const cardWidth = 340 + 16; // card width + gap
+    el.scrollBy({ left: dir * cardWidth * 2, behavior: "smooth" });
+  }
+
+  // ── mouse drag to scroll
+  function onMouseDown(e) {
+    setIsDragging(true);
+    setDragStart(e.pageX);
+    setScrollStart(scrollRef.current.scrollLeft);
+    scrollRef.current.style.cursor = "grabbing";
+  }
+
+  function onMouseMove(e) {
+    if (!isDragging) return;
+    const dx = e.pageX - dragStart;
+    scrollRef.current.scrollLeft = scrollStart - dx;
+  }
+
+  function onMouseUp() {
+    setIsDragging(false);
+    if (scrollRef.current) scrollRef.current.style.cursor = "grab";
+  }
+
   return (
     <section className="relative min-h-screen bg-[#0b0f1a] overflow-hidden">
 
-      {/* ── background glows ── */}
+      {/* glows */}
       <div className="absolute top-[-80px] right-[-80px] w-[420px] h-[420px] bg-blue-500 opacity-[0.07] blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-0 left-[-80px] w-[400px] h-[400px] bg-purple-600 opacity-[0.07] blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-indigo-600 opacity-[0.04] blur-[140px] rounded-full pointer-events-none" />
 
-      {/* ── grid ── */}
+      {/* grid */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
 
-      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-8 py-20">
+      <div className="relative z-10 py-20">
 
         {/* ── header ── */}
         <div
@@ -178,7 +220,7 @@ export default function Hero_Section_Two() {
             transform: headerVisible ? "translateY(0)" : "translateY(24px)",
             transition: "opacity 0.6s ease, transform 0.6s ease",
           }}
-          className="text-center mb-14"
+          className="text-center mb-14 px-4 sm:px-8"
         >
           <div className="flex items-center justify-center gap-2 mb-4">
             <span className="inline-block px-3 py-1 text-[11px] rounded-full
@@ -200,69 +242,124 @@ export default function Hero_Section_Two() {
             Real thoughts from real builders. See what the community is talking about right now.
           </p>
 
-          {/* live stat pills */}
-          {!loading && (
+          {/* stat pills */}
+          {!loading && posts.length > 0 && (
             <div className="flex items-center justify-center gap-3 mt-6 flex-wrap">
-              <div className="px-4 py-2 rounded-xl bg-[#13161f] border border-[#1e2029] text-center">
-                <span className="text-[16px] font-semibold text-[#ebedf5] font-mono">{posts.length}</span>
-                <span className="text-[10px] text-[#2e3244] uppercase tracking-wider ml-2">Posts</span>
-              </div>
-              <div className="px-4 py-2 rounded-xl bg-[#13161f] border border-[#1e2029] text-center">
-                <span className="text-[16px] font-semibold text-[#ebedf5] font-mono">
-                  {[...new Set(posts.map((p) => p.userEmail))].length}
-                </span>
-                <span className="text-[10px] text-[#2e3244] uppercase tracking-wider ml-2">Contributors</span>
-              </div>
-              <div className="px-4 py-2 rounded-xl bg-[#13161f] border border-[#1e2029] text-center">
-                <span className="text-[16px] font-semibold text-[#ebedf5] font-mono">
-                  {posts.reduce((s, p) => s + (p.likes || 0), 0)}
-                </span>
-                <span className="text-[10px] text-[#2e3244] uppercase tracking-wider ml-2">Likes</span>
-              </div>
+              {[
+                { val: posts.length, label: "Posts" },
+                { val: [...new Set(posts.map((p) => p.userEmail))].length, label: "Contributors" },
+                { val: posts.reduce((s, p) => s + (p.likes || 0), 0), label: "Likes" },
+              ].map((s) => (
+                <div key={s.label} className="px-4 py-2 rounded-xl bg-[#13161f] border border-[#1e2029]">
+                  <span className="text-[16px] font-semibold text-[#ebedf5] font-mono">{s.val}</span>
+                  <span className="text-[10px] text-[#2e3244] uppercase tracking-wider ml-2">{s.label}</span>
+                </div>
+              ))}
             </div>
           )}
         </div>
 
-        <div className="border-t border-[#1e2029] mb-10" />
+        <div className="border-t border-[#1e2029] mb-10 mx-4 sm:mx-8" />
 
         {/* ── error ── */}
         {error && (
-          <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20
+          <div className="mx-4 sm:mx-8 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20
                           text-red-400 text-[13px] text-center mb-6">
             {error}
           </div>
         )}
 
-        {/* ── loading skeletons ── */}
-        {loading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {[1,2,3,4,5,6].map((n) => <SkeletonCard key={n} />)}
-          </div>
-        )}
-
-        {/* ── empty state ── */}
-        {!loading && !error && posts.length === 0 && (
-          <div className="text-center py-20">
-            <div className="w-14 h-14 rounded-full bg-[#13161f] border border-[#1e2029]
-                            flex items-center justify-center mx-auto mb-4 text-[#3a4470]">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-                   stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-              </svg>
-            </div>
-            <p className="text-[14px] font-medium text-[#4a4f62] mb-1">No discussions yet</p>
-            <p className="text-[12px] text-[#2e3244]">Be the first to post something.</p>
-          </div>
-        )}
-
-        {/* ── posts grid ── */}
+        {/* ── scroll controls row ── */}
         {!loading && posts.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {posts.map((post, i) => (
-              <PostCard key={post._id} post={post} index={i} />
-            ))}
+          <div className="flex items-center justify-between px-4 sm:px-8 mb-4">
+            <p className="text-[11px] text-[#3a4470] select-none">
+              {posts.length} post{posts.length !== 1 ? "s" : ""} · drag or use arrows to browse
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => scrollBy(-1)}
+                disabled={!canScrollLeft}
+                className="w-8 h-8 rounded-full bg-[#13161f] border border-[#1e2029] flex items-center justify-center
+                           text-[#3a4470] hover:border-[#2a3a7a] hover:text-[#8ba4f5]
+                           disabled:opacity-25 disabled:cursor-not-allowed transition-all"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 18 9 12 15 6"/>
+                </svg>
+              </button>
+              <button
+                onClick={() => scrollBy(1)}
+                disabled={!canScrollRight}
+                className="w-8 h-8 rounded-full bg-[#13161f] border border-[#1e2029] flex items-center justify-center
+                           text-[#3a4470] hover:border-[#2a3a7a] hover:text-[#8ba4f5]
+                           disabled:opacity-25 disabled:cursor-not-allowed transition-all"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </button>
+            </div>
           </div>
         )}
+
+        {/* ── horizontal feed ── */}
+        <div className="relative">
+
+          {/* left fade */}
+          <div className="absolute left-0 top-0 bottom-0 w-16 z-10 pointer-events-none"
+               style={{ background: "linear-gradient(to right, #0b0f1a, transparent)" }} />
+          {/* right fade */}
+          <div className="absolute right-0 top-0 bottom-0 w-16 z-10 pointer-events-none"
+               style={{ background: "linear-gradient(to left, #0b0f1a, transparent)" }} />
+
+          {/* skeleton row */}
+          {loading && (
+            <div className="flex gap-4 overflow-hidden px-4 sm:px-8">
+              {[1,2,3,4].map((n) => <SkeletonCard key={n} />)}
+            </div>
+          )}
+
+          {/* empty state */}
+          {!loading && !error && posts.length === 0 && (
+            <div className="text-center py-20 px-4">
+              <div className="w-14 h-14 rounded-full bg-[#13161f] border border-[#1e2029]
+                              flex items-center justify-center mx-auto mb-4 text-[#3a4470]">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+              </div>
+              <p className="text-[14px] font-medium text-[#4a4f62] mb-1">No discussions yet</p>
+              <p className="text-[12px] text-[#2e3244]">Be the first to post something.</p>
+            </div>
+          )}
+
+          {/* scrollable feed */}
+          {!loading && posts.length > 0 && (
+            <div
+              ref={scrollRef}
+              onMouseDown={onMouseDown}
+              onMouseMove={onMouseMove}
+              onMouseUp={onMouseUp}
+              onMouseLeave={onMouseUp}
+              className="flex gap-4 overflow-x-auto pb-4 px-4 sm:px-8 select-none"
+              style={{
+                scrollbarWidth: "none",
+                msOverflowStyle: "none",
+                cursor: "grab",
+              }}
+            >
+              <style>{`div::-webkit-scrollbar { display: none; }`}</style>
+              {posts.map((post) => (
+                <PostCard key={post._id} post={post} />
+              ))}
+              {/* end spacer */}
+              <div className="shrink-0 w-4" />
+            </div>
+          )}
+        </div>
 
       </div>
     </section>
