@@ -7,12 +7,12 @@ import PostFeed from "../essentials/PostFeed";
 
 const NAV = [
   // { id: "feed", label: "Feed", href: "/Feed", icon: <><path d="M3 12h18"/><path d="M3 6h18"/><path d="M3 18h18"/></> },
-  { id: "home",   label: "Home",   href: "/", icon: <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/>, extra: <path d="M9 21V12h6v9"/> },
-  { id: "feed", label: "Feed", href: "/Feed", icon: <><path d="M3 12h18"/><path d="M3 6h18"/><path d="M3 18h18"/></> },
+  { id: "home",   label: "Home",   href: "/",     icon: <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/>, extra: <path d="M9 21V12h6v9"/> },
+  { id: "feed",   label: "Feed",   href: "/Feed", icon: <><path d="M3 12h18"/><path d="M3 6h18"/><path d="M3 18h18"/></> },
   { id: "post",   label: "Post",   icon: <><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></> },
   { id: "people", label: "People", icon: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></> },
   { id: "code",   label: "Code",   icon: <><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></> },
-];
+]; 
 
 const Icon = ({ size = 17, children }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
