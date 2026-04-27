@@ -9,7 +9,7 @@ export const connectDB = async() => {
 
     try {
         const conn = await mongoose.connect(process.env.MONGO_URI, {
-            dbName: "test",
+            dbName: "test", // DB Name which had sevral collection in it!!
         });
 
         console.log("MongoDB connected:", conn.connection.host); // check
