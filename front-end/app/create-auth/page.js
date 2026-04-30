@@ -5,18 +5,18 @@ import Link from "next/link"
 import { signIn } from "next-auth/react"
 
 export default function SignUp() {
-    const [step, setStep] = useState("details") // "details" | "otp"
+    const [step, setStep] = useState("details")
 
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [otp, setOtp] = useState("")
+    const [showPassword, setShowPassword] = useState(false)
 
     const [error, setError] = useState("")
     const [info, setInfo] = useState("")
     const [loading, setLoading] = useState(false)
 
-    // Step 1: Send OTP
     const handleSendOtp = async (e) => {
         e.preventDefault()
         setError("")
@@ -47,7 +47,6 @@ export default function SignUp() {
         }
     }
 
-    // Step 2: Verify OTP + Register
     const handleRegister = async (e) => {
         e.preventDefault()
         setError("")
@@ -91,7 +90,7 @@ export default function SignUp() {
             {/* Card */}
             <div className="relative z-10 w-[90%] max-w-md p-8 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-xl">
 
-                {/* Step indicator */}
+                {/* Step Indicator */}
                 <div className="flex items-center gap-2 mb-6">
                     <div className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold border ${
                         step === "details"
@@ -115,9 +114,10 @@ export default function SignUp() {
                         : `Enter the 6-digit code sent to ${email}`}
                 </p>
 
-                {/* ── STEP 1: Details form ── */}
+                {/* ── STEP 1: Details ── */}
                 {step === "details" && (
                     <form onSubmit={handleSendOtp} className="flex flex-col gap-4">
+
                         <input
                             type="text"
                             placeholder="Name"
@@ -126,6 +126,7 @@ export default function SignUp() {
                             className="w-full px-4 py-3 rounded-lg bg-[#111827] border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
                             required
                         />
+
                         <input
                             type="email"
                             placeholder="Email"
@@ -134,14 +135,36 @@ export default function SignUp() {
                             className="w-full px-4 py-3 rounded-lg bg-[#111827] border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
                             required
                         />
-                        <input
-                            type="password"
-                            placeholder="Password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="w-full px-4 py-3 rounded-lg bg-[#111827] border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
-                            required
-                        />
+
+                        {/* Password with show/hide toggle */}
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                placeholder="Password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full px-4 py-3 pr-12 rounded-lg bg-[#111827] border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
+                                required
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-purple-400 transition"
+                            >
+                                {showPassword ? (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                                        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                                        <line x1="1" y1="1" x2="23" y2="23"/>
+                                    </svg>
+                                ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                )}
+                            </button>
+                        </div>
 
                         {error && <p className="text-red-400 text-sm">{error}</p>}
 
@@ -152,10 +175,11 @@ export default function SignUp() {
                         >
                             {loading ? "Sending OTP..." : "Continue →"}
                         </button>
+
                     </form>
                 )}
 
-                {/* ── STEP 2: OTP form ── */}
+                {/* ── STEP 2: OTP ── */}
                 {step === "otp" && (
                     <form onSubmit={handleRegister} className="flex flex-col gap-4">
 
@@ -185,23 +209,24 @@ export default function SignUp() {
                             {loading ? "Creating account..." : "Verify & Sign Up"}
                         </button>
 
-                        {/* Resend OTP */}
                         <button
                             type="button"
                             onClick={handleSendOtp}
                             disabled={loading}
                             className="text-sm text-gray-400 hover:text-purple-400 transition text-center"
                         >
-                            Didn't receive it? <span className="text-purple-400 underline">Resend OTP</span>
+                            Didn't receive it?{" "}
+                            <span className="text-purple-400 underline">Resend OTP</span>
                         </button>
 
                         <button
                             type="button"
-                            onClick={() => { setStep("details"); setError(""); setOtp(""); }}
+                            onClick={() => { setStep("details"); setError(""); setOtp("") }}
                             className="text-sm text-gray-500 hover:text-gray-300 transition text-center"
                         >
                             ← Change email
                         </button>
+
                     </form>
                 )}
 
@@ -211,6 +236,7 @@ export default function SignUp() {
                         Sign in
                     </Link>
                 </p>
+
             </div>
         </div>
     )
