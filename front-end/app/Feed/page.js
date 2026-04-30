@@ -4,6 +4,10 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 
+export const metadata = {
+  title: "Dev Collab | Post"
+};
+
 // ─── NAV ────────────────────────────────────────────────────────────────────
 const NAV = [
   { id: "home",   label: "Home",    href: "/",        icon: <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/> },
