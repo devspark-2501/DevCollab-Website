@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+// const cors ??
 
 // Home route
 app.use('/', function(req, res) {
