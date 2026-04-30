@@ -24,7 +24,7 @@ export default function SignUp() {
         setLoading(true)
 
         try {
-            const res = await fetch("/api/send-otp", {
+            const res = await fetch("/api/otp", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email }),
