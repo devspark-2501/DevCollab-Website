@@ -2,9 +2,9 @@
 
 import Main_Explore from "../Components/ExploreRoute/Main-Explore"
 
-export const metadata = {
-  title: "Dev Collab | Explore"
-};
+// export const metadata = {
+//   title: "Dev Collab | Explore"
+// };
 
 export default function Explore() {
     return (

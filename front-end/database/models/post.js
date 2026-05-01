@@ -1,6 +1,6 @@
 import mongoose, { models, Schema } from "mongoose";
 
-const PostSchema = new Schema({
+const CommentSchema = new Schema({
   userEmail: {
     type: String,
     required: true,
@@ -11,20 +11,51 @@ const PostSchema = new Schema({
     required: true,
     trim: true,
   },
-  userContent: {
+  text: {
     type: String,
     required: true,
     trim: true,
   },
-  likes: {
-    type: Number,
-    default: 0,
+}, { timestamps: true });
+
+const PostSchema = new Schema(
+  {
+    userEmail: {
+      type: String,
+      required: true,
+      trim: true,
+      index: true,
+    },
+
+    userName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    userContent: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    likes: {
+      type: Number,
+      default: 0,
+    },
+
+    likedBy: [
+      {
+        type: String, // store user email
+      },
+    ],
+
+
+    comments: [CommentSchema],
   },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+  { timestamps: true }
+);
 
 const Post = models.Post || mongoose.model("Post", PostSchema);
+
 export default Post;

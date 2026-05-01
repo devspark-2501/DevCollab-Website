@@ -4,9 +4,9 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 
-export const metadata = {
-  title: "Dev Collab | Post"
-};
+// export const metadata = {
+//   title: "Dev Collab | Post"
+// };
 
 // ─── NAV ────────────────────────────────────────────────────────────────────
 const NAV = [
