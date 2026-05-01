@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+// important to import
 
 const OtpSchema = new mongoose.Schema({
     email: { type: String, required: true },
