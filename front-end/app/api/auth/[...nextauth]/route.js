@@ -5,6 +5,7 @@ const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
 
 
+{/* Unused Code!! */}
 
 // import NextAuth from "next-auth";
 // import GitHubProvider from "next-auth/providers/github";
