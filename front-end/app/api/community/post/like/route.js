@@ -21,11 +21,11 @@ export async function POST(req) {
     const alreadyLiked = post.likedBy.includes(userEmail);
 
     if (alreadyLiked) {
-      // 🔁 UNLIKE
+      // UNLIKE
       post.likedBy = post.likedBy.filter((e) => e !== userEmail);
       post.likes = Math.max(0, post.likes - 1);
     } else {
-      // ❤️ LIKE
+      // LIKE
       post.likedBy.push(userEmail);
       post.likes += 1;
     }
