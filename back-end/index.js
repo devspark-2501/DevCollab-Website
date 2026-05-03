@@ -5,7 +5,7 @@ const app = express();
 // Home route
 app.use('/', function(req, res) {
     res.send('Node Backend Server'); // you should send a response
-});
+}); // its just an random server running,not in use rn
 
 // server side rendering
 app.listen(4000, function() {
