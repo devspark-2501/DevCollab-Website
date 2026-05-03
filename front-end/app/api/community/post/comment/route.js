@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { connectDB } from "@/database/db";   // ✅ named import
+import { connectDB } from "@/database/db";   // named import
 import Post from "@/database/models/post";   // adjust if needed
 
 export async function POST(req) {
@@ -20,7 +20,7 @@ export async function POST(req) {
     post.comments.push({ userEmail, userName, text: text.trim() });
     await post.save();
 
-    // ✅ return the newly saved comment (has _id + timestamps from Mongo)
+    // return the newly saved comment (has _id + timestamps from Mongo)
     const newComment = post.comments[post.comments.length - 1];
     return NextResponse.json({ comment: newComment });
 
