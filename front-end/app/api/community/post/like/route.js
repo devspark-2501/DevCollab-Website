@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import dbConnect from "@/database/db"; // ← fix this path to match yours
-import Post from "@/models/Post";
+import { connectDB } from "@/database/db";   // ✅ named import
+import Post from "@/database/models/post";   // adjust if needed
 
 export async function POST(req) {
   try {
-    await dbConnect();
+    await connectDB();                        // ✅ correct function name
 
     const { postId, userEmail } = await req.json();
 
@@ -21,7 +21,7 @@ export async function POST(req) {
 
     if (alreadyLiked) {
       post.likedBy = post.likedBy.filter((e) => e !== userEmail);
-      post.likes = Math.max(0, post.likes - 1);
+      post.likes   = Math.max(0, post.likes - 1);
     } else {
       post.likedBy.push(userEmail);
       post.likes += 1;
@@ -29,7 +29,7 @@ export async function POST(req) {
 
     await post.save();
 
-    // return real values from DB
+    // ✅ return real DB values so the UI always shows the true count
     return NextResponse.json({ likes: post.likes, likedBy: post.likedBy });
 
   } catch (err) {

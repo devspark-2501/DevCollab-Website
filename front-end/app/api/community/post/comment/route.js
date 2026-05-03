@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import dbConnect from "@/lib/db";
-import Post from "@/models/Post";
+import { connectDB } from "@/database/db";   // ✅ named import
+import Post from "@/database/models/post";   // adjust if needed
 
 export async function POST(req) {
   try {
-    await dbConnect();
+    await connectDB();                        // ✅ correct function name
 
     const { postId, userEmail, userName, text } = await req.json();
 
@@ -20,7 +20,7 @@ export async function POST(req) {
     post.comments.push({ userEmail, userName, text: text.trim() });
     await post.save();
 
-    // return the last comment (the one just added)
+    // ✅ return the newly saved comment (has _id + timestamps from Mongo)
     const newComment = post.comments[post.comments.length - 1];
     return NextResponse.json({ comment: newComment });
 
