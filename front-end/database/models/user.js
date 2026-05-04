@@ -20,6 +20,7 @@ const UserSchema = new Schema(
     { timestamps: true }
 );
 
+// Prevent model overwrite upon initial compile
 const User = models.User || mongoose.model('User', UserSchema);
 
 export default User; 
