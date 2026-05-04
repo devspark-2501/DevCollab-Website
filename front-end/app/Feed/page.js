@@ -4,17 +4,12 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 
-// export const metadata = {
-//   title: "Dev Collab | Post"
-// };
-
-// ─── NAV ────────────────────────────────────────────────────────────────────
 const NAV = [
-  { id: "home",   label: "Home",    href: "/",        icon: <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/> },
-  { id: "feed",   label: "Feed",    href: "/Feed",    icon: <><path d="M4 6h16M4 12h16M4 18h16"/></> },
-  { id: "people", label: "People",  href: null,       icon: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></> },
-  { id: "code",   label: "Code",    href: null,       icon: <><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></> },
-  { id: "profile",label: "Profile", href: "/Profile", icon: <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></> },
+  { id: "home",    label: "Home",    href: "/",        icon: <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/> },
+  { id: "feed",    label: "Feed",    href: "/Feed",    icon: <><path d="M4 6h16M4 12h16M4 18h16"/></> },
+  { id: "people",  label: "People",  href: null,       icon: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></> },
+  { id: "code",    label: "Code",    href: null,       icon: <><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></> },
+  { id: "profile", label: "Profile", href: "/Profile", icon: <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></> },
 ];
 
 const COLORS = [
@@ -25,12 +20,8 @@ const COLORS = [
   "bg-[#1a2a2e] text-[#38bdf8] border-[#2a3a4a]",
   "bg-[#2e2a1a] text-[#fbbf24] border-[#4a3a2a]",
 ];
+function getColor(name = "") { return COLORS[name.charCodeAt(0) % COLORS.length]; }
 
-function getColor(name = "") {
-  return COLORS[name.charCodeAt(0) % COLORS.length];
-}
-
-// ─── ICONS ──────────────────────────────────────────────────────────────────
 const Icon = ({ size = 17, children }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
        stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -38,7 +29,6 @@ const Icon = ({ size = 17, children }) => (
   </svg>
 );
 
-// ─── TIME AGO ───────────────────────────────────────────────────────────────
 function TimeAgo({ date }) {
   const diff = Math.floor((Date.now() - new Date(date)) / 1000);
   if (diff < 60)    return <span>{diff}s ago</span>;
@@ -47,7 +37,7 @@ function TimeAgo({ date }) {
   return <span>{new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>;
 }
 
-// ─── SIDEBAR ────────────────────────────────────────────────────────────────
+// ─── SIDEBAR ─────────────────────────────────────────────────────────────────
 function Sidebar({ expanded, onToggle, active, mobileOpen, onMobileClose }) {
   const { data: session } = useSession();
   return (
@@ -61,8 +51,6 @@ function Sidebar({ expanded, onToggle, active, mobileOpen, onMobileClose }) {
         ${mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         ${expanded ? "w-[220px]" : "w-[60px]"}
       `}>
-
-        {/* toggle */}
         <div className={`flex items-center mb-6 ${expanded ? "justify-between" : "justify-center"}`}>
           {expanded && (
             <span className="text-[11px] font-semibold tracking-widest uppercase text-[#3a3d4a] px-2">
@@ -77,8 +65,6 @@ function Sidebar({ expanded, onToggle, active, mobileOpen, onMobileClose }) {
             </Icon>
           </button>
         </div>
-
-        {/* nav */}
         <nav className="flex-1 flex flex-col gap-0.5">
           {NAV.map(({ id, label, href, icon }) => {
             const isActive = active === id;
@@ -88,19 +74,12 @@ function Sidebar({ expanded, onToggle, active, mobileOpen, onMobileClose }) {
                          ${isActive
                            ? "bg-[#161c2e] text-[#8ba4f5] border-[#1e2a4a] font-medium"
                            : "text-[#5a5f72] border-transparent hover:bg-[#161820] hover:text-[#c8cad4]"}`;
-            const content = (
-              <>
-                <Icon>{icon}</Icon>
-                {expanded && <span>{label}</span>}
-              </>
-            );
+            const content = <><Icon>{icon}</Icon>{expanded && <span>{label}</span>}</>;
             return href
               ? <Link key={id} href={href} className={cls} onClick={onMobileClose}>{content}</Link>
               : <div key={id} className={cls} onClick={onMobileClose}>{content}</div>;
           })}
         </nav>
-
-        {/* user pill at bottom */}
         {expanded && session?.user && (
           <div className="mb-3 px-2 py-2.5 rounded-xl bg-[#13161f] border border-[#1e2029]">
             <div className="flex items-center gap-2.5">
@@ -108,8 +87,7 @@ function Sidebar({ expanded, onToggle, active, mobileOpen, onMobileClose }) {
                 ? <img src={session.user.image} alt="av"
                        className="w-7 h-7 rounded-full border border-[#2a2e3e] object-cover shrink-0"/>
                 : <div className={`w-7 h-7 rounded-full border flex items-center justify-center
-                                   text-[11px] font-semibold shrink-0
-                                   ${getColor(session.user.name || "")}`}>
+                                   text-[11px] font-semibold shrink-0 ${getColor(session.user.name || "")}`}>
                     {session.user.name?.charAt(0).toUpperCase()}
                   </div>
               }
@@ -120,7 +98,6 @@ function Sidebar({ expanded, onToggle, active, mobileOpen, onMobileClose }) {
             </div>
           </div>
         )}
-
         <hr className="border-[#1a1c23] my-2" />
         <button onClick={() => signOut({ callbackUrl: "/login" })}
           className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px]
@@ -139,7 +116,6 @@ function Sidebar({ expanded, onToggle, active, mobileOpen, onMobileClose }) {
   );
 }
 
-// ─── SKELETON ────────────────────────────────────────────────────────────────
 function SkeletonPost() {
   return (
     <div className="bg-[#13161f] border border-[#1e2029] rounded-2xl p-5 animate-pulse">
@@ -159,11 +135,17 @@ function SkeletonPost() {
   );
 }
 
-// ─── POST CARD ───────────────────────────────────────────────────────────────
-function PostCard({ post, animate }) {
-  const [liked,  setLiked]  = useState(false);
-  const [likes,  setLikes]  = useState(post.likes || 0);
-  const [visible, setVisible] = useState(false);
+// ─── POST CARD (real likes + comments, persisted) ────────────────────────────
+function PostCard({ post: initialPost, animate, userEmail, userName }) {
+  const [post, setPost]                 = useState(initialPost);
+  const [liked, setLiked]               = useState(
+    () => initialPost.likedBy?.includes(userEmail) ?? false
+  );
+  const [showComments, setShowComments] = useState(false);
+  const [commentText, setCommentText]   = useState("");
+  const [commentPosting, setCommentPosting] = useState(false);
+  const [commentError, setCommentError]     = useState("");
+  const [visible, setVisible]           = useState(false);
   const ref = useRef(null);
 
   useEffect(() => {
@@ -175,21 +157,61 @@ function PostCard({ post, animate }) {
     return () => obs.disconnect();
   }, []);
 
-  function handleLike() {
-    if (liked) return;
-    setLiked(true);
-    setLikes((l) => l + 1);
+  // ── Like — saves to DB, syncs real count back
+  async function handleLike() {
+    const wasLiked = liked;
+    setLiked(!wasLiked);
+    setPost((p) => ({ ...p, likes: wasLiked ? p.likes - 1 : p.likes + 1 }));
+    try {
+      const res  = await fetch("/api/community/post/like", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId: post._id, userEmail }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setPost((p) => ({ ...p, likes: data.likes, likedBy: data.likedBy }));
+      setLiked(data.likedBy.includes(userEmail));
+    } catch {
+      // revert on failure
+      setLiked(wasLiked);
+      setPost((p) => ({ ...p, likes: wasLiked ? p.likes + 1 : p.likes - 1 }));
+    }
+  }
+
+  // ── Comment — saves to DB
+  async function handleComment() {
+    const text = commentText.trim();
+    if (!text) return;
+    setCommentPosting(true);
+    setCommentError("");
+    try {
+      const res  = await fetch("/api/community/post/comment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId: post._id, userEmail, userName, text }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed");
+      setPost((p) => ({ ...p, comments: [...(p.comments || []), data.comment] }));
+      setCommentText("");
+    } catch (e) {
+      setCommentError(e.message);
+    } finally {
+      setCommentPosting(false);
+    }
   }
 
   const colorCls = getColor(post.userName || "");
   const initial  = post.userName?.charAt(0).toUpperCase() || "?";
+  const comments = post.comments || [];
 
   return (
     <div
       ref={ref}
       style={{
-        opacity:   animate ? (visible ? 1 : 0) : 1,
-        transform: animate ? (visible ? "translateY(0)" : "translateY(20px)") : "none",
+        opacity:    animate ? (visible ? 1 : 0) : 1,
+        transform:  animate ? (visible ? "translateY(0)" : "translateY(20px)") : "none",
         transition: "opacity 0.45s ease, transform 0.45s ease",
       }}
       className="bg-[#13161f] border border-[#1e2029] rounded-2xl p-5
@@ -224,6 +246,7 @@ function PostCard({ post, animate }) {
 
       {/* footer */}
       <div className="flex items-center gap-5 mt-4 pt-3 border-t border-[#191b24]">
+        {/* Like */}
         <button onClick={handleLike}
           className={`flex items-center gap-1.5 text-[12px] transition-all
             ${liked ? "text-[#8ba4f5]" : "text-[#3a4470] hover:text-[#8ba4f5]"}`}>
@@ -232,56 +255,145 @@ function PostCard({ post, animate }) {
                stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
           </svg>
-          {likes}
+          {post.likes}
         </button>
 
-        <button className="flex items-center gap-1.5 text-[12px] text-[#3a4470] hover:text-[#8ba4f5] transition-colors">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        {/* Reply toggle */}
+        <button
+          onClick={() => setShowComments((v) => !v)}
+          className={`flex items-center gap-1.5 text-[12px] transition-colors
+            ${showComments ? "text-[#8ba4f5]" : "text-[#3a4470] hover:text-[#8ba4f5]"}`}>
+          <Icon size={14}>
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-          </svg>
-          Reply
+          </Icon>
+          {comments.length > 0 ? comments.length : "Reply"}
         </button>
 
+        {/* Share */}
         <button className="flex items-center gap-1.5 text-[12px] text-[#3a4470] hover:text-[#8ba4f5] transition-colors ml-auto">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <Icon size={14}>
             <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
             <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
             <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-          </svg>
+          </Icon>
           Share
         </button>
       </div>
+
+      {/* ── Comments ── */}
+      {showComments && (
+        <div className="mt-4 pt-4 border-t border-[#191b24] space-y-3">
+          {comments.length === 0 && (
+            <p className="text-[11.5px] text-[#2e3244] text-center py-1">
+              No replies yet. Be the first!
+            </p>
+          )}
+
+          {comments.map((c) => (
+            <div key={c._id} className="flex gap-2.5">
+              <div className={`w-7 h-7 rounded-xl border flex items-center justify-center
+                               text-[11px] font-bold shrink-0 mt-0.5 ${getColor(c.userName || "")}`}>
+                {c.userName?.charAt(0).toUpperCase()}
+              </div>
+              <div className="flex-1 bg-[#0d0f14] border border-[#1e2029] rounded-xl px-3.5 py-2.5">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[12px] font-semibold text-[#c8cad4]">{c.userName}</span>
+                  <span className="text-[10px] text-[#2e3244]"><TimeAgo date={c.createdAt} /></span>
+                </div>
+                <p className="text-[12.5px] text-[#7a7f96] leading-relaxed whitespace-pre-wrap">
+                  {c.text}
+                </p>
+              </div>
+            </div>
+          ))}
+
+          {/* Comment input */}
+          <div className="flex gap-2.5 items-start pt-1">
+            <div className={`w-7 h-7 rounded-xl border flex items-center justify-center
+                             text-[11px] font-bold shrink-0 mt-0.5 ${getColor(userName || "")}`}>
+              {userName?.charAt(0).toUpperCase()}
+            </div>
+            <div className="flex-1">
+              <textarea
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleComment();
+                  }
+                }}
+                placeholder="Write a reply… (Enter to post)"
+                rows={2}
+                maxLength={300}
+                className="w-full bg-[#0d0f14] border border-[#1e2029] rounded-xl
+                           px-3.5 py-2.5 text-[12.5px] text-[#c8cad4]
+                           placeholder-[#2e3244] resize-none
+                           focus:outline-none focus:border-[#2a3a7a] transition-colors"
+              />
+              {commentError && (
+                <p className="text-[11px] text-red-400 mt-1">{commentError}</p>
+              )}
+              <div className="flex items-center justify-between mt-1.5">
+                <span className="text-[10px] text-[#2e3244]">{commentText.length}/300</span>
+                <button
+                  onClick={handleComment}
+                  disabled={commentPosting || !commentText.trim()}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11.5px]
+                             font-medium bg-[#1d2b5c] border border-[#2a3a7a] text-[#8ba4f5]
+                             hover:bg-[#22336e] transition-colors
+                             disabled:opacity-40 disabled:cursor-not-allowed">
+                  {commentPosting
+                    ? <svg className="animate-spin" width="11" height="11" viewBox="0 0 24 24"
+                           fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                      </svg>
+                    : <Icon size={11}>
+                        <line x1="22" y1="2" x2="11" y2="13"/>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                      </Icon>
+                  }
+                  Reply
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-// ─── MAIN FEED ───────────────────────────────────────────────────────────────
+// ─── MAIN FEED ────────────────────────────────────────────────────────────────
 const PAGE_SIZE = 10;
 
 export default function Feed() {
-  const { data: session }               = useSession();
-  const [expanded, setExpanded]         = useState(true);
-  const [mobileOpen, setMobileOpen]     = useState(false);
-  const [allPosts,  setAllPosts]        = useState([]);
-  const [posts,     setPosts]           = useState([]);
-  const [loading,   setLoading]         = useState(true);
-  const [loadingMore, setLoadingMore]   = useState(false);
-  const [page,      setPage]            = useState(1);
-  const [hasMore,   setHasMore]         = useState(true);
-  const [mounted,   setMounted]         = useState(false);
-  const [newPostOpen, setNewPostOpen]   = useState(false);
-  const [content,   setContent]         = useState("");
-  const [posting,   setPosting]         = useState(false);
-  const [postError, setPostError]       = useState("");
+  const { data: session }             = useSession();
+  const [expanded, setExpanded]       = useState(true);
+  const [mobileOpen, setMobileOpen]   = useState(false);
+  const [allPosts, setAllPosts]       = useState([]);
+  const [posts, setPosts]             = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage]               = useState(1);
+  const [hasMore, setHasMore]         = useState(true);
+  const [mounted, setMounted]         = useState(false);
+  const [newPostOpen, setNewPostOpen] = useState(false);
+  const [content, setContent]         = useState("");
+  const [posting, setPosting]         = useState(false);
+  const [postError, setPostError]     = useState("");
 
   const sentinelRef = useRef(null);
 
+  // pull from session — passed down to PostCard
+  const userEmail = session?.user?.email;
+  const userName  = session?.user?.name;
+
   useEffect(() => { setTimeout(() => setMounted(true), 60); }, []);
 
-  // ── fetch all posts once
+  // wait for session so likedBy seeding works correctly
   useEffect(() => {
+    if (!userEmail) return;
     fetch("/api/community/post")
       .then((r) => r.json())
       .then((d) => {
@@ -292,9 +404,8 @@ export default function Feed() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [userEmail]);
 
-  // ── infinite scroll sentinel
   useEffect(() => {
     if (!sentinelRef.current) return;
     const obs = new IntersectionObserver(([e]) => {
@@ -308,20 +419,18 @@ export default function Feed() {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
     setTimeout(() => {
-      const next = page + 1;
+      const next  = page + 1;
       const slice = allPosts.slice(0, next * PAGE_SIZE);
       setPosts(slice);
       setPage(next);
       setHasMore(slice.length < allPosts.length);
       setLoadingMore(false);
-    }, 600); // small delay so it feels like a real load
+    }, 600);
   }, [page, allPosts, hasMore, loadingMore]);
 
-  // ── create post
   async function handlePost() {
     if (!content.trim()) return setPostError("Write something first.");
-    setPosting(true);
-    setPostError("");
+    setPosting(true); setPostError("");
     try {
       const res  = await fetch("/api/community/post", {
         method: "POST",
@@ -332,13 +441,9 @@ export default function Feed() {
       if (!res.ok) throw new Error(data.error || "Failed");
       setAllPosts((prev) => [data.post, ...prev]);
       setPosts((prev)    => [data.post, ...prev]);
-      setContent("");
-      setNewPostOpen(false);
-    } catch (e) {
-      setPostError(e.message);
-    } finally {
-      setPosting(false);
-    }
+      setContent(""); setNewPostOpen(false);
+    } catch (e) { setPostError(e.message); }
+    finally { setPosting(false); }
   }
 
   const fadeIn = `transition-all duration-500 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"}`;
@@ -346,26 +451,15 @@ export default function Feed() {
   return (
     <div className="flex min-h-screen bg-[#0b0f1a] text-[#e2e4ec]">
 
-      {/* ── SIDEBAR ── */}
-      <Sidebar
-        expanded={expanded}
-        onToggle={() => setExpanded(v => !v)}
-        active="feed"
-        mobileOpen={mobileOpen}
-        onMobileClose={() => setMobileOpen(false)}
-      />
+      <Sidebar expanded={expanded} onToggle={() => setExpanded(v => !v)}
+               active="feed" mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
 
-      {/* ── MAIN ── */}
       <div className="flex-1 min-w-0 overflow-y-auto relative">
-
-        {/* glows */}
         <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-blue-500 opacity-[0.04] blur-[140px] rounded-full pointer-events-none" />
         <div className="fixed bottom-0 left-[30%] w-[400px] h-[400px] bg-purple-600 opacity-[0.04] blur-[120px] rounded-full pointer-events-none" />
-
-        {/* grid */}
         <div className="fixed inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
 
-        {/* ── mobile top bar */}
+        {/* mobile bar */}
         <div className="sticky top-0 z-20 flex items-center gap-3 px-4 py-3
                         bg-[#0b0f1a]/80 backdrop-blur border-b border-[#1e2029] md:hidden">
           <button onClick={() => setMobileOpen(true)}
@@ -380,7 +474,7 @@ export default function Feed() {
           <span className="text-[13px] font-medium text-[#8ba4f5]">Feed</span>
         </div>
 
-        {/* ── sticky feed header */}
+        {/* sticky header */}
         <div className="sticky top-0 z-10 hidden md:flex items-center justify-between
                         px-6 py-3 bg-[#0b0f1a]/80 backdrop-blur border-b border-[#1e2029]">
           <div className="flex items-center gap-2">
@@ -397,30 +491,23 @@ export default function Feed() {
               Live
             </span>
           </div>
-          <button
-            onClick={() => setNewPostOpen(true)}
+          <button onClick={() => setNewPostOpen(true)}
             className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[12px] font-medium
                        bg-[#1d2b5c] border border-[#2a3a7a] text-[#8ba4f5]
-                       hover:bg-[#22336e] transition-colors"
-          >
-            <Icon size={11}>
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <line x1="5" y1="12" x2="19" y2="12"/>
-            </Icon>
+                       hover:bg-[#22336e] transition-colors">
+            <Icon size={11}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></Icon>
             New Post
           </button>
         </div>
 
-        {/* ── feed content */}
+        {/* feed */}
         <div className={`relative z-10 max-w-[680px] mx-auto px-4 sm:px-6 py-8 ${fadeIn}`}>
 
-          {/* compose box — mini always-visible at top */}
+          {/* compose bar */}
           {session && (
-            <div
-              onClick={() => setNewPostOpen(true)}
+            <div onClick={() => setNewPostOpen(true)}
               className="bg-[#13161f] border border-[#1e2029] rounded-2xl p-4 mb-6
-                         hover:border-[#2a3060] transition-colors cursor-pointer group"
-            >
+                         hover:border-[#2a3060] transition-colors cursor-pointer group">
               <div className="flex items-center gap-3">
                 {session.user?.image
                   ? <img src={session.user.image} alt="av"
@@ -435,49 +522,43 @@ export default function Feed() {
                 </p>
                 <div className="w-7 h-7 rounded-lg bg-[#1d2b5c] border border-[#2a3a7a]
                                 flex items-center justify-center text-[#8ba4f5] shrink-0">
-                  <Icon size={12}>
-                    <line x1="12" y1="5" x2="12" y2="19"/>
-                    <line x1="5" y1="12" x2="19" y2="12"/>
-                  </Icon>
+                  <Icon size={12}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></Icon>
                 </div>
               </div>
             </div>
           )}
 
-          {/* ── loading skeletons */}
           {loading && (
-            <div className="space-y-4">
-              {[1,2,3,4,5].map((n) => <SkeletonPost key={n} />)}
-            </div>
+            <div className="space-y-4">{[1,2,3,4,5].map((n) => <SkeletonPost key={n} />)}</div>
           )}
 
-          {/* ── empty */}
           {!loading && allPosts.length === 0 && (
             <div className="text-center py-24">
               <div className="w-14 h-14 rounded-full bg-[#13161f] border border-[#1e2029]
                               flex items-center justify-center mx-auto mb-4 text-[#3a4470]">
-                <Icon size={22}>
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                </Icon>
+                <Icon size={22}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></Icon>
               </div>
               <p className="text-[15px] font-medium text-[#4a4f62] mb-1">Nothing here yet</p>
               <p className="text-[12px] text-[#2e3244]">Be the first to post something.</p>
             </div>
           )}
 
-          {/* ── posts */}
           {!loading && (
             <div className="space-y-4">
               {posts.map((post, i) => (
-                <PostCard key={post._id} post={post} animate={i >= PAGE_SIZE} />
+                <PostCard
+                  key={post._id}
+                  post={post}
+                  animate={i >= PAGE_SIZE}
+                  userEmail={userEmail}
+                  userName={userName}
+                />
               ))}
             </div>
           )}
 
-          {/* ── infinite scroll sentinel */}
           <div ref={sentinelRef} className="h-8 mt-4" />
 
-          {/* ── loading more spinner */}
           {loadingMore && (
             <div className="flex justify-center py-6">
               <div className="flex items-center gap-2 text-[12px] text-[#3a4470]">
@@ -490,7 +571,6 @@ export default function Feed() {
             </div>
           )}
 
-          {/* ── end of feed */}
           {!loading && !hasMore && allPosts.length > 0 && (
             <div className="text-center py-10">
               <div className="w-8 h-0.5 bg-[#1e2029] mx-auto mb-3 rounded" />
@@ -500,11 +580,10 @@ export default function Feed() {
         </div>
       </div>
 
-      {/* ── CREATE POST MODAL ── */}
+      {/* CREATE POST MODAL */}
       {newPostOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
           <div className="w-full max-w-lg bg-[#13161f] border border-[#1e2029] rounded-2xl p-6 shadow-2xl">
-
             <div className="flex items-center justify-between mb-5">
               <div>
                 <p className="text-[15px] font-semibold text-[#ebedf5]">New Post</p>
@@ -513,15 +592,10 @@ export default function Feed() {
               <button onClick={() => { setNewPostOpen(false); setContent(""); setPostError(""); }}
                 className="w-7 h-7 flex items-center justify-center rounded-md border border-[#1e2029]
                            text-[#3a3d4a] hover:bg-[#161820] hover:text-[#e05a5a] transition-colors">
-                <Icon size={12}>
-                  <line x1="18" y1="6" x2="6" y2="18"/>
-                  <line x1="6" y1="6" x2="18" y2="18"/>
-                </Icon>
+                <Icon size={12}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></Icon>
               </button>
             </div>
-
             <div className="border-t border-[#1e2029] mb-5" />
-
             {session && (
               <div className="flex items-center gap-3 mb-4 px-3 py-2.5 rounded-xl bg-[#0d0f14] border border-[#1e2029]">
                 {session.user?.image
@@ -542,7 +616,6 @@ export default function Feed() {
                 </span>
               </div>
             )}
-
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
@@ -554,51 +627,31 @@ export default function Feed() {
                          text-[14px] text-[#c8cad4] placeholder-[#2e3244] resize-none
                          focus:outline-none focus:border-[#2a3a7a] transition-colors"
             />
-
             <div className="flex items-center justify-between mt-2 mb-5">
-              {postError
-                ? <p className="text-[11px] text-red-400">{postError}</p>
-                : <span />
-              }
+              {postError ? <p className="text-[11px] text-red-400">{postError}</p> : <span />}
               <p className={`text-[10.5px] ml-auto ${content.length > 450 ? "text-amber-400" : "text-[#2e3244]"}`}>
                 {content.length}/500
               </p>
             </div>
-
             <div className="flex gap-2">
-              <button
-                onClick={() => { setNewPostOpen(false); setContent(""); setPostError(""); }}
+              <button onClick={() => { setNewPostOpen(false); setContent(""); setPostError(""); }}
                 className="flex-1 py-2.5 rounded-lg text-[13px] font-medium border border-[#1e2029]
-                           text-[#4a4f62] hover:bg-[#161820] hover:text-[#8ba4f5] transition-colors"
-              >
+                           text-[#4a4f62] hover:bg-[#161820] hover:text-[#8ba4f5] transition-colors">
                 Cancel
               </button>
-              <button
-                onClick={handlePost}
-                disabled={posting || !content.trim()}
+              <button onClick={handlePost} disabled={posting || !content.trim()}
                 className="flex-1 py-2.5 rounded-lg text-[13px] font-medium
                            bg-[#1d2b5c] border border-[#2a3a7a] text-[#8ba4f5]
                            hover:bg-[#22336e] transition-colors
                            disabled:opacity-40 disabled:cursor-not-allowed
-                           flex items-center justify-center gap-2"
-              >
-                {posting ? (
-                  <>
-                    <svg className="animate-spin" width="13" height="13" viewBox="0 0 24 24"
-                         fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                    </svg>
-                    Posting…
-                  </>
-                ) : (
-                  <>
-                    <Icon size={13}>
-                      <line x1="22" y1="2" x2="11" y2="13"/>
-                      <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                    </Icon>
-                    Post
-                  </>
-                )}
+                           flex items-center justify-center gap-2">
+                {posting
+                  ? <><svg className="animate-spin" width="13" height="13" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                      </svg>Posting…</>
+                  : <><Icon size={13}><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></Icon>Post</>
+                }
               </button>
             </div>
           </div>
