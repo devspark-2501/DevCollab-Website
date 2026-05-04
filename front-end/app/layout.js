@@ -1,5 +1,6 @@
 import SessionWrapper from "./Components/essentials/SessionWrapper";
 import { NavBar } from "./Components/layout/NavBar";
+import NotificationToast from "./Components/notifications/NotificationToast";
 // import "./globals.css";
 
 import "./globals.css";
@@ -15,6 +16,7 @@ export default function RootLayout({ children }) {
         <SessionWrapper>
           {/* <NavBar /> */}
           {children}
+          <NotificationToast />
         </SessionWrapper>
       </body>
     </html>
