@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { connectDB } from "@/database/db";   // named import
-import Post from "@/database/models/post";   // adjust if needed
+import { connectDB } from "@/database/db";
+import Post from "@/database/models/post";
+import Notification from "@/database/models/notification";
 
 export async function POST(req) {
   try {
-    await connectDB();                        // ✅ correct function name
+    await connectDB();
 
     const { postId, userEmail, userName, text } = await req.json();
 
@@ -20,7 +21,18 @@ export async function POST(req) {
     post.comments.push({ userEmail, userName, text: text.trim() });
     await post.save();
 
-    // return the newly saved comment (has _id + timestamps from Mongo)
+    // ── notify post owner (but not if they reply to their own post)
+    if (post.userEmail !== userEmail) {
+      await Notification.create({
+        toEmail:     post.userEmail,
+        fromName:    userName,
+        fromEmail:   userEmail,
+        type:        "comment",
+        postId:      postId,
+        postSnippet: post.userContent?.slice(0, 60),
+      });
+    }
+
     const newComment = post.comments[post.comments.length - 1];
     return NextResponse.json({ comment: newComment });
 
