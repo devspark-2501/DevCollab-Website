@@ -3,6 +3,7 @@ import { connectDB } from "@/database/db";
 import Notification from "@/database/models/notification";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+// This route handles all notification-related actions:
 
 // GET — fetch notifications for the logged-in user
 export async function GET() {
