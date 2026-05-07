@@ -125,7 +125,7 @@ export default function PublicProfilePage() {
             Home
           </Link>
           <span className="text-[#1e2029]">/</span>
-          <Link href="/explore"
+          <Link href="/Explore"
             className="text-[#3a4470] hover:text-[#8ba4f5] transition-colors">
             Explore
           </Link>
