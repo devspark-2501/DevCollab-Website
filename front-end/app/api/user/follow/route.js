@@ -27,25 +27,35 @@ export async function POST(req) {
       return NextResponse.json({ error: "Cannot follow yourself" }, { status: 400 });
     }
 
-    const [me, target] = await Promise.all([
-      User.findOne({ email: myEmail }),
-      User.findOne({ email: targetEmail }),
-    ]);
-
-    if (!me || !target) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    // fetch me first to check current follow state
+    const me = await User.findOne({ email: myEmail });
+    if (!me) {
+      return NextResponse.json({ error: "Your account not found" }, { status: 404 });
     }
 
-    const alreadyFollowing = me.following.includes(targetEmail);
+    // safely handle missing array on old users
+    const alreadyFollowing = (me.following || []).includes(targetEmail);
 
     if (alreadyFollowing) {
-      // ── UNFOLLOW
-      me.following     = me.following.filter((e) => e !== targetEmail);
-      target.followers = target.followers.filter((e) => e !== myEmail);
+      // ── UNFOLLOW — $pull works even if array was missing
+      await User.updateOne(
+        { email: myEmail },
+        { $pull: { following: targetEmail } }
+      );
+      await User.updateOne(
+        { email: targetEmail },
+        { $pull: { followers: myEmail } }
+      );
     } else {
-      // ── FOLLOW
-      me.following.push(targetEmail);
-      target.followers.push(myEmail);
+      // ── FOLLOW — $addToSet prevents duplicates automatically
+      await User.updateOne(
+        { email: myEmail },
+        { $addToSet: { following: targetEmail } }
+      );
+      await User.updateOne(
+        { email: targetEmail },
+        { $addToSet: { followers: myEmail } }
+      );
 
       // notify the person being followed
       await Notification.create({
@@ -58,15 +68,20 @@ export async function POST(req) {
       });
     }
 
-    await Promise.all([me.save(), target.save()]);
+    // fetch fresh counts AFTER the update
+    const [updatedMe, updatedTarget] = await Promise.all([
+      User.findOne({ email: myEmail }),
+      User.findOne({ email: targetEmail }),
+    ]);
 
     return NextResponse.json({
-      following:        !alreadyFollowing,
-      followerCount:    target.followers.length,
-      followingCount:   me.following.length,
+      following:      !alreadyFollowing,
+      followerCount:  (updatedTarget?.followers || []).length,
+      followingCount: (updatedMe?.following    || []).length,
     });
 
   } catch (err) {
+    console.error("Follow error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
