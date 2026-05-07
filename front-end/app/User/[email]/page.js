@@ -50,41 +50,67 @@ function SkeletonPost() {
 }
 
 export default function PublicProfilePage() {
-  const { data: session }       = useSession();
-  const params                  = useParams();
-  const router                  = useRouter();
-  const [user, setUser]         = useState(null);
-  const [posts, setPosts]       = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [notFound, setNotFound] = useState(false);
-  const [mounted, setMounted]   = useState(false);
+  const { data: session }                   = useSession();
+  const params                              = useParams();
+  const router                              = useRouter();
+  const [user, setUser]                     = useState(null);
+  const [posts, setPosts]                   = useState([]);
+  const [loading, setLoading]               = useState(true);
+  const [notFound, setNotFound]             = useState(false);
+  const [mounted, setMounted]               = useState(false);
+  const [isFollowing, setIsFollowing]       = useState(false);
+  const [followerCount, setFollowerCount]   = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [followLoading, setFollowLoading]   = useState(false);
 
   const email = decodeURIComponent(params.email);
 
-  // if you're viewing your own email, just go to your profile
+  // redirect to own profile if viewing yourself
   useEffect(() => {
-    if (session?.user?.email === email) {
-      router.replace("/Profile");
-    }
+    if (session?.user?.email === email) router.replace("/Profile");
   }, [session, email]);
 
   useEffect(() => {
     setTimeout(() => setMounted(true), 60);
-
     fetch(`/api/user/${encodeURIComponent(email)}`)
       .then((r) => r.json())
       .then((d) => {
         if (d.error) { setNotFound(true); return; }
         setUser(d.user);
         setPosts(d.posts || []);
+        setFollowerCount(d.user.followerCount   || 0);
+        setFollowingCount(d.user.followingCount || 0);
+        // seed whether current user already follows this person
+        if (session?.user?.email) {
+          setIsFollowing(d.user.followers?.includes(session.user.email) ?? false);
+        }
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
-  }, [email]);
+  }, [email, session]);
+
+  async function handleFollow() {
+    if (!session?.user) { router.push("/login"); return; }
+    setFollowLoading(true);
+    try {
+      const res  = await fetch("/api/user/follow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetEmail: email }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setIsFollowing(data.following);
+      setFollowerCount(data.followerCount);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setFollowLoading(false);
+    }
+  }
 
   const fadeUp = `transition-all duration-500 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`;
 
-  // ── not found state
   if (!loading && notFound) {
     return (
       <div className="min-h-screen bg-[#111318] flex items-center justify-center px-4">
@@ -98,8 +124,7 @@ export default function PublicProfilePage() {
           </div>
           <p className="text-[18px] font-semibold text-[#ebedf5] mb-2">User not found</p>
           <p className="text-[13px] text-[#3f4357] mb-6">
-            No profile exists for{" "}
-            <span className="text-[#8ba4f5]">{email}</span>
+            No profile exists for <span className="text-[#8ba4f5]">{email}</span>
           </p>
           <Link href="/Explore"
             className="px-5 py-2.5 rounded-lg text-[13px] font-medium
@@ -115,39 +140,28 @@ export default function PublicProfilePage() {
   return (
     <div className="min-h-screen bg-[#111318] text-[#e2e4ec]">
 
-      {/* ── TOP NAV BAR ── */}
+      {/* top nav */}
       <div className="sticky top-0 z-20 flex items-center justify-between
-                      px-4 sm:px-8 py-3
-                      bg-[#0d0f14]/90 backdrop-blur border-b border-[#1e2029]">
+                      px-4 sm:px-8 py-3 bg-[#0d0f14]/90 backdrop-blur border-b border-[#1e2029]">
         <div className="flex items-center gap-2.5 text-[12px]">
-          <Link href="/"
-            className="text-[#3a4470] hover:text-[#8ba4f5] transition-colors">
-            Home
-          </Link>
+          <Link href="/" className="text-[#3a4470] hover:text-[#8ba4f5] transition-colors">Home</Link>
           <span className="text-[#1e2029]">/</span>
-          <Link href="/Explore"
-            className="text-[#3a4470] hover:text-[#8ba4f5] transition-colors">
-            Explore
-          </Link>
+          <Link href="/Explore" className="text-[#3a4470] hover:text-[#8ba4f5] transition-colors">Explore</Link>
           <span className="text-[#1e2029]">/</span>
           <span className="text-[#5a5f72] truncate max-w-[120px] sm:max-w-[200px]">
             {loading ? "Loading…" : user?.name}
           </span>
         </div>
-
         <Link href="/Profile"
           className="text-[11.5px] text-[#3a4470] hover:text-[#8ba4f5] transition-colors">
           My Profile →
         </Link>
       </div>
 
-      {/* ── COVER ── */}
+      {/* cover */}
       <div className="h-[120px] sm:h-[180px] bg-[#13161f] border-b border-[#1e2029] relative overflow-hidden">
         <div className="absolute inset-0 opacity-50"
-             style={{
-               backgroundImage: "linear-gradient(#1e2029 1px,transparent 1px),linear-gradient(90deg,#1e2029 1px,transparent 1px)",
-               backgroundSize: "32px 32px"
-             }} />
+             style={{ backgroundImage: "linear-gradient(#1e2029 1px,transparent 1px),linear-gradient(90deg,#1e2029 1px,transparent 1px)", backgroundSize: "32px 32px" }} />
         <div className="absolute top-[-60px] right-[-60px] w-[260px] h-[260px] bg-blue-500 opacity-[0.07] blur-[90px] rounded-full pointer-events-none" />
         <div className="absolute bottom-[-40px] left-[-40px] w-[200px] h-[200px] bg-purple-600 opacity-[0.07] blur-[80px] rounded-full pointer-events-none" />
         <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-b from-transparent to-[#111318]" />
@@ -155,12 +169,11 @@ export default function PublicProfilePage() {
 
       <div className="max-w-[820px] mx-auto px-4 sm:px-8 pb-16">
 
-        {/* ── PROFILE HEADER ── */}
+        {/* profile header */}
         <div className={`flex items-end justify-between -mt-10 sm:-mt-12 mb-8 flex-wrap gap-4 ${fadeUp}`}
              style={{ transitionDelay: "0.05s" }}>
           <div className="flex items-end gap-3 sm:gap-4">
-
-            {/* Avatar */}
+            {/* avatar */}
             <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full
                              border-[3px] border-[#111318] outline outline-[1.5px] outline-[#2a2e3e]
                              flex items-center justify-center
@@ -168,7 +181,6 @@ export default function PublicProfilePage() {
                              ${loading ? "bg-[#1a1d28] text-[#2e3244] animate-pulse" : getColor(user?.name || "")}`}>
               {loading ? "?" : user?.name?.charAt(0).toUpperCase()}
             </div>
-
             <div className="pb-1.5">
               <div className="flex items-center gap-2 mb-1">
                 {loading
@@ -185,49 +197,55 @@ export default function PublicProfilePage() {
             </div>
           </div>
 
-          {/* Read-only badge */}
-          <div className="pb-1.5 flex items-center gap-2">
-            <span className="px-3 py-1.5 rounded-lg text-[11.5px] font-medium
-                             bg-[#13161f] border border-[#1e2029] text-[#3a4470]
-                             flex items-center gap-1.5">
-              <Icon size={11}>
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </Icon>
-              Viewing profile
-            </span>
+          {/* follow button */}
+          <div className="pb-1.5">
+            <button
+              onClick={handleFollow}
+              disabled={followLoading || loading}
+              className={`flex items-center gap-2 px-5 py-2 rounded-lg text-[13px] font-medium
+                          border transition-all disabled:opacity-50 disabled:cursor-not-allowed
+                          ${isFollowing
+                            ? "bg-transparent border-[#1e2029] text-[#5a5f72] hover:border-red-500/40 hover:text-[#e05a5a]"
+                            : "bg-[#1d2b5c] border-[#2a3a7a] text-[#8ba4f5] hover:bg-[#22336e]"}`}
+            >
+              {followLoading
+                ? <svg className="animate-spin" width="13" height="13" viewBox="0 0 24 24"
+                       fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                  </svg>
+                : <Icon size={13}>
+                    {isFollowing
+                      ? <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></>
+                      : <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></>
+                    }
+                  </Icon>
+              }
+              {isFollowing ? "Unfollow" : "Follow"}
+            </button>
           </div>
         </div>
 
-        {/* ── STATS ── */}
-        <div className={`grid grid-cols-2 gap-2 mb-6 ${fadeUp}`} style={{ transitionDelay: "0.12s" }}>
+        {/* stats — real data */}
+        <div className={`grid grid-cols-3 gap-2 mb-6 ${fadeUp}`} style={{ transitionDelay: "0.12s" }}>
           {[
-            {
-              num: loading ? "—" : posts.length,
-              label: "Posts",
-              icon: <><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></>
-            },
-            {
-              num: loading ? "—" : posts.reduce((s, p) => s + (p.likes || 0), 0),
-              label: "Likes received",
-              icon: <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-            },
+            { num: loading ? "—" : posts.length,    label: "Posts" },
+            { num: loading ? "—" : followerCount,   label: "Followers" },
+            { num: loading ? "—" : followingCount,  label: "Following" },
           ].map((s) => (
             <div key={s.label}
               className="bg-[#13161f] border border-[#1e2029] rounded-xl p-3 sm:p-4 text-center
                          hover:border-[#2a3060] transition-colors">
-              <div className="text-xl sm:text-2xl font-semibold text-[#ebedf5] tracking-tight font-mono mb-1">
+              <div className="text-xl sm:text-2xl font-semibold text-[#ebedf5] tracking-tight font-mono">
                 {s.num}
               </div>
-              <div className="text-[10px] sm:text-[11px] text-[#2e3244] font-medium uppercase tracking-wider flex items-center justify-center gap-1.5">
-                <Icon size={10}>{s.icon}</Icon>
+              <div className="text-[10px] sm:text-[11px] text-[#2e3244] font-medium mt-0.5 uppercase tracking-wider">
                 {s.label}
               </div>
             </div>
           ))}
         </div>
 
-        {/* ── ABOUT ── */}
+        {/* about */}
         <div className={`mb-10 ${fadeUp}`} style={{ transitionDelay: "0.18s" }}>
           <div className="bg-[#13161f] border border-[#1e2029] rounded-xl p-5">
             <p className="text-[10px] font-semibold tracking-widest uppercase text-[#2e3244] mb-4">About</p>
@@ -246,14 +264,14 @@ export default function PublicProfilePage() {
           </div>
         </div>
 
-        {/* ── DIVIDER ── */}
+        {/* divider */}
         <div className="flex items-center gap-4 mb-8">
           <div className="flex-1 border-t border-[#1e2029]" />
           <span className="text-[10.5px] text-[#2e3244] uppercase tracking-widest">Posts</span>
           <div className="flex-1 border-t border-[#1e2029]" />
         </div>
 
-        {/* ── POSTS HEADER ── */}
+        {/* posts label */}
         <div className={`flex items-center gap-2 mb-6 ${fadeUp}`} style={{ transitionDelay: "0.22s" }}>
           <span className="inline-block px-3 py-1 text-[11px] rounded-full
                            bg-[#1d2b5c]/60 text-[#8ba4f5] border border-[#2a3a7a]/50 tracking-wide">
@@ -285,21 +303,17 @@ export default function PublicProfilePage() {
               </Icon>
             </div>
             <p className="text-[14px] font-medium text-[#4a4f62] mb-1">No posts yet</p>
-            <p className="text-[11.5px] text-[#2e3244]">
-              {user?.name} hasn't posted anything yet.
-            </p>
+            <p className="text-[11.5px] text-[#2e3244]">{user?.name} hasn't posted anything yet.</p>
           </div>
         )}
 
-        {/* post cards — read only */}
+        {/* post cards */}
         {!loading && posts.length > 0 && (
           <div className="space-y-3">
             {posts.map((post) => (
               <article key={post._id}
                 className="bg-[#13161f] border border-[#1e2029] rounded-xl p-5
                            hover:border-[#2a3060] transition-all">
-
-                {/* post header */}
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <div className="flex items-center gap-3">
                     <div className={`w-8 h-8 rounded-xl border flex items-center justify-center
@@ -323,12 +337,11 @@ export default function PublicProfilePage() {
 
                 <div className="border-t border-[#191b24] mb-3" />
 
-                {/* post body */}
                 <p className="text-[13.5px] text-[#8a8fa8] leading-relaxed whitespace-pre-wrap">
                   {post.userContent}
                 </p>
 
-                {/* read-only footer — just shows counts, no buttons */}
+                {/* read-only footer */}
                 <div className="flex items-center gap-5 mt-4 pt-3 border-t border-[#191b24]">
                   <span className="flex items-center gap-1.5 text-[11.5px] text-[#3a4470]">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
