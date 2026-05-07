@@ -101,7 +101,7 @@ export default function PublicProfilePage() {
             No profile exists for{" "}
             <span className="text-[#8ba4f5]">{email}</span>
           </p>
-          <Link href="/explore"
+          <Link href="/Explore"
             className="px-5 py-2.5 rounded-lg text-[13px] font-medium
                        bg-[#1d2b5c] border border-[#2a3a7a] text-[#8ba4f5]
                        hover:bg-[#22336e] transition-colors">
