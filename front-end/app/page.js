@@ -205,7 +205,7 @@ export default function Home() {
           </FloatingBadge>
         </div>
 
-        {/* keyframes */}
+        {/* keyframes (doesnt matter rn)*/}
         <style>{`
           @keyframes float1 {
             0%,100% { transform: translateY(0px);   }
