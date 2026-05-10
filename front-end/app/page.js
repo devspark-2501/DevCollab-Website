@@ -118,7 +118,7 @@ const FEATURES = [
 ];
 
 export default function Home() {
-  const pathname        = usePathname();
+  const pathname            = usePathname();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -137,8 +137,19 @@ export default function Home() {
 
       {pathname === "/" && <NavBar />}
 
+      <style>{`
+        @keyframes float1 {
+          0%,100% { transform: translateY(0px);   }
+          50%      { transform: translateY(-10px); }
+        }
+        @keyframes float2 {
+          0%,100% { transform: translateY(0px); }
+          50%      { transform: translateY(9px); }
+        }
+      `}</style>
+
       {/* ══════════════════════════════════════════════════════ HERO */}
-      <div className="min-h-screen flex items-center justify-start relative">
+      <div className="min-h-screen flex items-start justify-start relative">
 
         {/* glows */}
         <div className="absolute top-[-200px] left-[-200px] w-[600px] h-[600px] bg-purple-600
@@ -152,50 +163,35 @@ export default function Home() {
         {/* grid */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
 
-        {/* keyframes */}
-        <style>{`
-          @keyframes float1 {
-            0%,100% { transform: translateY(0px);   }
-            50%      { transform: translateY(-10px); }
-          }
-          @keyframes float2 {
-            0%,100% { transform: translateY(0px); }
-            50%      { transform: translateY(9px); }
-          }
-          @keyframes marquee-left {
-            0%   { transform: translateX(0);    }
-            100% { transform: translateX(-50%); }
-          }
-          @keyframes marquee-right {
-            0%   { transform: translateX(-50%); }
-            100% { transform: translateX(0);    }
-          }
-        `}</style>
-
         {/* floating badges — desktop only */}
         <div className="hidden lg:block">
           <FloatingBadge
-            className="top-[30%] right-[7%]"
+            className="top-[34%] right-[7%]"
             style={{ animation: "float1 6s ease-in-out infinite" }}>
             <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0 animate-pulse" />
             New post by Tanush M
           </FloatingBadge>
 
           <FloatingBadge
-            className="top-[50%] right-[15%]"
+            className="top-[52%] right-[15%]"
             style={{ animation: "float2 7s ease-in-out infinite" }}>
             <div className="w-5 h-5 rounded-md bg-[#1d2b5c] border border-[#2a3a7a]
                             flex items-center justify-center text-[#8ba4f5] shrink-0">
-              <Icon size={10}><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></Icon>
+              <Icon size={10}>
+                <polyline points="16 18 22 12 16 6"/>
+                <polyline points="8 6 2 12 8 18"/>
+              </Icon>
             </div>
-            <span className="font-mono text-[10.5px] text-[#8ba4f5]">git push origin main</span>
+            <span className="font-mono text-[10.5px] text-[#8ba4f5]">
+              git push origin main
+            </span>
           </FloatingBadge>
 
           <FloatingBadge
-            className="top-[70%] right-[6%]"
+            className="top-[72%] right-[6%]"
             style={{ animation: "float1 8s ease-in-out infinite 1s" }}>
             <div className="flex -space-x-1.5">
-              {["T","S","A"].map((l, i) => (
+              {["T", "S", "A"].map((l, i) => (
                 <div key={i}
                   className="w-5 h-5 rounded-full border border-[#0b0f1a] bg-[#1d2b5c]
                              flex items-center justify-center text-[8px] font-bold text-[#8ba4f5]">
@@ -207,7 +203,7 @@ export default function Home() {
           </FloatingBadge>
 
           <FloatingBadge
-            className="top-[38%] right-[28%]"
+            className="top-[42%] right-[29%]"
             style={{ animation: "float2 5.5s ease-in-out infinite 0.5s" }}>
             <svg width="12" height="12" viewBox="0 0 24 24"
                  fill="#8ba4f5" stroke="#8ba4f5" strokeWidth="1.5"
@@ -219,13 +215,15 @@ export default function Home() {
         </div>
 
         {/* ── hero content ── */}
-        {/* pt-32 on mobile (navbar ~64px + breathing room), sm:pt-0 centres it vertically */}
-        <div className="relative z-10 w-full max-w-3xl px-6 sm:px-10 pt-32 sm:pt-20 lg:pt-0 pb-16 sm:pb-20">
+        {/* pt-28 pushes content below the fixed navbar on all screens */}
+        <div className="relative z-10 w-full max-w-3xl px-6 sm:px-10
+                        pt-28 sm:pt-32 lg:pt-36
+                        pb-20 sm:pb-28">
 
           {/* platform badge */}
-          <div style={fadeUp(0)} className="mb-6">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 text-[11.5px] rounded-full
-                             bg-[#13161f] border border-[#1e2029] text-[#8ba4f5]">
+          <div style={fadeUp(0)} className="mb-7">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 text-[11.5px]
+                             rounded-full bg-[#13161f] border border-[#1e2029] text-[#8ba4f5]">
               <span className="w-1.5 h-1.5 rounded-full bg-[#8ba4f5] animate-pulse" />
               Developers Platform · Free forever
             </span>
@@ -274,7 +272,9 @@ export default function Home() {
                                  bg-transparent border border-[#1e2029] text-[#4a4f62]
                                  hover:bg-[#161820] hover:text-[#8ba4f5] transition-all">
                 Browse the feed
-                <Icon size={14}><path d="M4 6h16M4 12h16M4 18h16"/></Icon>
+                <Icon size={14}>
+                  <path d="M4 6h16M4 12h16M4 18h16"/>
+                </Icon>
               </button>
             </Link>
           </div>
