@@ -2,27 +2,24 @@ import mongoose, { models, Schema } from "mongoose";
 
 const UserSchema = new Schema(
   {
-    name: {
-      type: String,
+    username: {
+      type:     String,
       required: true,
+      unique:   true,
+      trim:     true,
     },
-    
     email: {
-      type: String,
+      type:     String,
       required: true,
-      unique: true,
+      unique:   true,
+      trim:     true,
     },
-
     password: {
-      type: String,
+      type:     String,
       required: true,
     },
-
-    // array of emails this user follows
-    following: [{ type: String }],
-    
-    // array of emails following this user
     followers: [{ type: String }],
+    following: [{ type: String }],
   },
   { timestamps: true }
 );
