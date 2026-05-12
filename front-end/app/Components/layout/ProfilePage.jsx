@@ -1,7 +1,7 @@
 'use client'
 
 import Link from "next/link";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useEffect, useState, useRef } from "react";
 import PostFeed from "../essentials/PostFeed";
 
@@ -79,29 +79,31 @@ function Sidebar({ expanded, onToggle, active, onNav, mobileOpen, onMobileClose 
 }
 
 export default function ProfileLayout({
-  name     = "Alex Johnson",
-  email    = "alex@devspace.io",
-  image    = null,
+  email     = "alex@devspace.io",
+  image     = null,
   createdAt = new Date().toISOString(),
   provider  = "github",
 }) {
-  const [mounted, setMounted]                     = useState(false);
-  const [sidebarExpanded, setSidebarExpanded]     = useState(true);
-  const [activeNav, setActiveNav]                 = useState("home");
+  const { data: session }                     = useSession();
+  const [mounted, setMounted]                 = useState(false);
+  const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const [activeNav, setActiveNav]             = useState("home");
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [triggerModal, setTriggerModal]           = useState(false);
-  const [followerCount, setFollowerCount]         = useState(0);
-  const [followingCount, setFollowingCount]       = useState(0);
-  const [statsLoading, setStatsLoading]           = useState(true);
+  const [triggerModal, setTriggerModal]       = useState(false);
+  const [followerCount, setFollowerCount]     = useState(0);
+  const [followingCount, setFollowingCount]   = useState(0);
+  const [statsLoading, setStatsLoading]       = useState(true);
 
   const postSectionRef = useRef(null);
+
+  // ── pull username directly from session — single source of truth
+  const username = session?.user?.username || session?.user?.name || "dev";
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 80);
     return () => clearTimeout(t);
   }, []);
 
-  // fetch real follower / following counts
   useEffect(() => {
     fetch("/api/user/me")
       .then((r) => r.json())
@@ -171,15 +173,16 @@ export default function ProfileLayout({
                     ? <img src={image} alt="avatar"
                            className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-[3px] border-[#111318] outline outline-[1.5px] outline-[#2a2e3e] object-cover" />
                     : <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-[3px] border-[#111318] outline outline-[1.5px] outline-[#2a2e3e] bg-[#1a1d28] flex items-center justify-center text-3xl sm:text-4xl font-semibold text-[#8ba4f5] font-mono">
-                        {name?.charAt(0).toUpperCase()}
+                        {username?.charAt(0).toUpperCase()}
                       </div>
                   }
                   <div className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full bg-green-500 border-[2.5px] border-[#111318]" />
                 </div>
                 <div className="pb-1.5">
                   <div className="flex items-center gap-2 mb-1">
+                    {/* ✅ show @username */}
                     <span className="text-[18px] sm:text-[22px] font-semibold text-[#ebedf5] tracking-tight">
-                      {name}
+                      @{username}
                     </span>
                     <div className="w-[18px] h-[18px] rounded-full bg-[#1d2b5c] border border-[#2a3a7a] flex items-center justify-center">
                       <svg width="9" height="8" viewBox="0 0 11 9" fill="none">
@@ -187,6 +190,7 @@ export default function ProfileLayout({
                       </svg>
                     </div>
                   </div>
+                  {/* show actual email below */}
                   <p className="text-[12px] sm:text-[13px] text-[#3f4357] truncate max-w-[180px] sm:max-w-none">
                     {email}
                   </p>
@@ -218,12 +222,12 @@ export default function ProfileLayout({
               </div>
             </div>
 
-            {/* stats — real data */}
+            {/* stats */}
             <div className={`grid grid-cols-3 gap-2 mb-6 ${fadeUp}`} style={{ transitionDelay: "0.12s" }}>
               {[
-                { num: "0",                                   label: "Projects" },
-                { num: statsLoading ? "…" : followerCount,  label: "Followers" },
-                { num: statsLoading ? "…" : followingCount, label: "Following" },
+                { num: "0",                                   label: "Projects"  },
+                { num: statsLoading ? "…" : followerCount,   label: "Followers" },
+                { num: statsLoading ? "…" : followingCount,  label: "Following" },
               ].map(s => (
                 <div key={s.label}
                   className="bg-[#13161f] border border-[#1e2029] rounded-xl p-3 sm:p-4 text-center
@@ -245,9 +249,26 @@ export default function ProfileLayout({
                   About
                 </p>
                 {[
-                  { icon: <><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></>, key: "Email",    val: email },
-                  { icon: <><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></>,                                         key: "Joined",   val: joined },
-                  { icon: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>,                                                                         key: "Auth via", val: providerClean },
+                  {
+                    icon: <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>,
+                    key:  "Username",
+                    val:  `@${username}`,
+                  },
+                  {
+                    icon: <><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></>,
+                    key:  "Email",
+                    val:  email,
+                  },
+                  {
+                    icon: <><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></>,
+                    key:  "Joined",
+                    val:  joined,
+                  },
+                  {
+                    icon: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>,
+                    key:  "Auth via",
+                    val:  providerClean,
+                  },
                 ].map((row, i, arr) => (
                   <div key={row.key}
                     className={`flex items-start gap-2.5 ${i < arr.length - 1 ? "pb-3 mb-3 border-b border-[#191b24]" : ""}`}>
@@ -286,10 +307,6 @@ export default function ProfileLayout({
         {/* posts section */}
         <div ref={postSectionRef}
              className="relative bg-[#0b0f1a] border-t border-[#1e2029] min-h-[400px]">
-          {/* <div className="absolute top-[-80px] right-[-80px] w-[420px] h-[420px] bg-blue-500 opacity-[0.07] blur-[120px] rounded-full pointer-events-none" /> */}
-          {/* <div className="absolute bottom-0 left-[-80px] w-[400px] h-[400px] bg-purple-600 opacity-[0.07] blur-[120px] rounded-full pointer-events-none" /> */}
-          {/* <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" /> */}
-
           <div className="relative z-10 max-w-[820px] w-full mx-auto px-4 sm:px-8 py-10">
             <div className="flex items-center gap-2 mb-6">
               <span className="inline-block px-3 py-1 text-[11px] rounded-full
@@ -315,7 +332,6 @@ export default function ProfileLayout({
         </div>
 
       </div>
-      
     </div>
   );
 }

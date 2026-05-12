@@ -65,7 +65,10 @@ export default function PublicProfilePage() {
 
   const email = decodeURIComponent(params.email);
 
-  // redirect to own profile if viewing yourself
+  // ── my own username from session
+  const myUsername = session?.user?.username || session?.user?.name;
+
+  // redirect if viewing own profile
   useEffect(() => {
     if (session?.user?.email === email) router.replace("/Profile");
   }, [session, email]);
@@ -80,7 +83,6 @@ export default function PublicProfilePage() {
         setPosts(d.posts || []);
         setFollowerCount(d.user.followerCount   || 0);
         setFollowingCount(d.user.followingCount || 0);
-        // seed whether current user already follows this person
         if (session?.user?.email) {
           setIsFollowing(d.user.followers?.includes(session.user.email) ?? false);
         }
@@ -94,22 +96,22 @@ export default function PublicProfilePage() {
     setFollowLoading(true);
     try {
       const res  = await fetch("/api/user/follow", {
-        method: "POST",
+        method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ targetEmail: email }),
+        body:    JSON.stringify({ targetEmail: email }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setIsFollowing(data.following);
       setFollowerCount(data.followerCount);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setFollowLoading(false);
-    }
+    } catch (e) { console.error(e); }
+    finally { setFollowLoading(false); }
   }
 
   const fadeUp = `transition-all duration-500 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`;
+
+  // ── username to display — from DB (most reliable)
+  const displayUsername = user?.username || user?.name || email.split("@")[0];
 
   if (!loading && notFound) {
     return (
@@ -148,8 +150,9 @@ export default function PublicProfilePage() {
           <span className="text-[#1e2029]">/</span>
           <Link href="/Explore" className="text-[#3a4470] hover:text-[#8ba4f5] transition-colors">Explore</Link>
           <span className="text-[#1e2029]">/</span>
+          {/* ✅ show @username in breadcrumb */}
           <span className="text-[#5a5f72] truncate max-w-[120px] sm:max-w-[200px]">
-            {loading ? "Loading…" : user?.name}
+            {loading ? "Loading…" : `@${displayUsername}`}
           </span>
         </div>
         <Link href="/Profile"
@@ -173,21 +176,24 @@ export default function PublicProfilePage() {
         <div className={`flex items-end justify-between -mt-10 sm:-mt-12 mb-8 flex-wrap gap-4 ${fadeUp}`}
              style={{ transitionDelay: "0.05s" }}>
           <div className="flex items-end gap-3 sm:gap-4">
-            {/* avatar */}
+            {/* avatar — initial from username */}
             <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full
                              border-[3px] border-[#111318] outline outline-[1.5px] outline-[#2a2e3e]
                              flex items-center justify-center
                              text-3xl sm:text-4xl font-semibold font-mono
-                             ${loading ? "bg-[#1a1d28] text-[#2e3244] animate-pulse" : getColor(user?.name || "")}`}>
-              {loading ? "?" : user?.name?.charAt(0).toUpperCase()}
+                             ${loading ? "bg-[#1a1d28] text-[#2e3244] animate-pulse" : getColor(displayUsername)}`}>
+              {loading ? "?" : displayUsername?.charAt(0).toUpperCase()}
             </div>
             <div className="pb-1.5">
               <div className="flex items-center gap-2 mb-1">
                 {loading
                   ? <div className="h-6 w-36 bg-[#1e2029] rounded animate-pulse" />
-                  : <span className="text-[18px] sm:text-[22px] font-semibold text-[#ebedf5] tracking-tight">
-                      {user?.name}
-                    </span>
+                  : <>
+                      {/* ✅ show @username as the main display */}
+                      <span className="text-[18px] sm:text-[22px] font-semibold text-[#ebedf5] tracking-tight">
+                        @{displayUsername}
+                      </span>
+                    </>
                 }
               </div>
               {loading
@@ -225,12 +231,12 @@ export default function PublicProfilePage() {
           </div>
         </div>
 
-        {/* stats — real data */}
+        {/* stats */}
         <div className={`grid grid-cols-3 gap-2 mb-6 ${fadeUp}`} style={{ transitionDelay: "0.12s" }}>
           {[
-            { num: loading ? "—" : posts.length,    label: "Posts" },
-            { num: loading ? "—" : followerCount,   label: "Followers" },
-            { num: loading ? "—" : followingCount,  label: "Following" },
+            { num: loading ? "—" : posts.length,   label: "Posts"     },
+            { num: loading ? "—" : followerCount,  label: "Followers" },
+            { num: loading ? "—" : followingCount, label: "Following" },
           ].map((s) => (
             <div key={s.label}
               className="bg-[#13161f] border border-[#1e2029] rounded-xl p-3 sm:p-4 text-center
@@ -249,16 +255,32 @@ export default function PublicProfilePage() {
         <div className={`mb-10 ${fadeUp}`} style={{ transitionDelay: "0.18s" }}>
           <div className="bg-[#13161f] border border-[#1e2029] rounded-xl p-5">
             <p className="text-[10px] font-semibold tracking-widest uppercase text-[#2e3244] mb-4">About</p>
-            <div className="flex items-start gap-2.5">
-              <div className="text-[#3a4470] mt-0.5 shrink-0">
-                <Icon size={13}>
-                  <rect x="2" y="4" width="20" height="16" rx="2"/>
-                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
-                </Icon>
+            <div className="space-y-3">
+              {/* username row */}
+              <div className="flex items-start gap-2.5 pb-3 border-b border-[#191b24]">
+                <div className="text-[#3a4470] mt-0.5 shrink-0">
+                  <Icon size={13}>
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </Icon>
+                </div>
+                <div>
+                  <p className="text-[10.5px] text-[#2e3244] mb-0.5">Username</p>
+                  <p className="text-[13px] text-[#8ba4f5] font-mono">@{displayUsername}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-[10.5px] text-[#2e3244] mb-0.5">Email</p>
-                <p className="text-[13px] text-[#b0b4c8] break-all">{email}</p>
+              {/* email row */}
+              <div className="flex items-start gap-2.5">
+                <div className="text-[#3a4470] mt-0.5 shrink-0">
+                  <Icon size={13}>
+                    <rect x="2" y="4" width="20" height="16" rx="2"/>
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                  </Icon>
+                </div>
+                <div>
+                  <p className="text-[10.5px] text-[#2e3244] mb-0.5">Email</p>
+                  <p className="text-[13px] text-[#b0b4c8] break-all">{email}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -275,7 +297,8 @@ export default function PublicProfilePage() {
         <div className={`flex items-center gap-2 mb-6 ${fadeUp}`} style={{ transitionDelay: "0.22s" }}>
           <span className="inline-block px-3 py-1 text-[11px] rounded-full
                            bg-[#1d2b5c]/60 text-[#8ba4f5] border border-[#2a3a7a]/50 tracking-wide">
-            {loading ? "Posts" : `${user?.name?.split(" ")[0]}'s Posts`}
+            {/* ✅ use username in posts label */}
+            {loading ? "Posts" : `@${displayUsername}'s Posts`}
           </span>
           {!loading && (
             <span className="inline-block px-3 py-1 text-[11px] rounded-full
@@ -303,7 +326,7 @@ export default function PublicProfilePage() {
               </Icon>
             </div>
             <p className="text-[14px] font-medium text-[#4a4f62] mb-1">No posts yet</p>
-            <p className="text-[11.5px] text-[#2e3244]">{user?.name} hasn't posted anything yet.</p>
+            <p className="text-[11.5px] text-[#2e3244]">@{displayUsername} hasn't posted anything yet.</p>
           </div>
         )}
 
@@ -321,8 +344,9 @@ export default function PublicProfilePage() {
                       {post.userName?.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <p className="text-[13.5px] font-semibold text-[#ebedf5] leading-none">
-                        {post.userName}
+                      {/* ✅ post card shows @username */}
+                      <p className="text-[13.5px] font-semibold text-[#ebedf5] leading-none font-mono">
+                        @{post.userName}
                       </p>
                       <p className="text-[10.5px] text-[#3f4357] mt-0.5">
                         <TimeAgo date={post.createdAt} />
@@ -341,7 +365,6 @@ export default function PublicProfilePage() {
                   {post.userContent}
                 </p>
 
-                {/* read-only footer */}
                 <div className="flex items-center gap-5 mt-4 pt-3 border-t border-[#191b24]">
                   <span className="flex items-center gap-1.5 text-[11.5px] text-[#3a4470]">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
