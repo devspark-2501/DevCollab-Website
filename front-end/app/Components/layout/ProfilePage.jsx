@@ -20,7 +20,7 @@ const Icon = ({ size = 17, children }) => (
   </svg>
 );
 
-function Sidebar({ expanded, onToggle, active, onNav, mobileOpen, onMobileClose }) {
+function Sidebar({ expanded, onToggle, active, onNav, mobileOpen, onMobileClose, onPostClick }) {
   return (
     <>
       {mobileOpen && (
@@ -55,6 +55,20 @@ function Sidebar({ expanded, onToggle, active, onNav, mobileOpen, onMobileClose 
                            ? "bg-[#161c2e] text-[#8ba4f5] border-[#1e2a4a] font-medium"
                            : "text-[#5a5f72] border-transparent hover:bg-[#161820] hover:text-[#c8cad4]"}`;
             const content = <><Icon>{icon}</Icon>{expanded && <span>{label}</span>}</>;
+
+            // ── "Post" nav item: scroll to posts section instead of navigating
+            if (id === "post") {
+              return (
+                <div key={id} className={cls} onClick={() => {
+                  onNav(id);
+                  onMobileClose();
+                  onPostClick();   // ← triggers the scroll
+                }}>
+                  {content}
+                </div>
+              );
+            }
+
             return href
               ? <Link key={id} href={href} className={cls} onClick={() => { onNav(id); onMobileClose(); }}>{content}</Link>
               : <div key={id} className={cls} onClick={() => { onNav(id); onMobileClose(); }}>{content}</div>;
@@ -115,9 +129,24 @@ export default function ProfileLayout({
       .finally(() => setStatsLoading(false));
   }, []);
 
+  // ── scrolls the posts section into view with extra breathing room,
+  //    then opens the new-post modal after the scroll settles
+  function handleScrollToPosts() {
+    if (!postSectionRef.current) return;
+
+    // Find the scrollable parent (the flex-1 overflow-y-auto div)
+    const scrollParent = postSectionRef.current.closest(".overflow-y-auto");
+    if (scrollParent) {
+      const sectionTop = postSectionRef.current.offsetTop;
+      scrollParent.scrollTo({ top: sectionTop - 32, behavior: "smooth" });
+    } else {
+      postSectionRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
   function handleAddPost() {
-    postSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    setTimeout(() => setTriggerModal(true), 500);
+    handleScrollToPosts();
+    setTimeout(() => setTriggerModal(true), 600);
   }
 
   const joined        = new Date(createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
@@ -133,6 +162,7 @@ export default function ProfileLayout({
         onNav={setActiveNav}
         mobileOpen={mobileSidebarOpen}
         onMobileClose={() => setMobileSidebarOpen(false)}
+        onPostClick={handleScrollToPosts}  // ← passed down here
       />
 
       <div className="flex-1 overflow-y-auto flex flex-col min-w-0">
@@ -180,7 +210,6 @@ export default function ProfileLayout({
                 </div>
                 <div className="pb-1.5">
                   <div className="flex items-center gap-2 mb-1">
-                    {/* ✅ show @username */}
                     <span className="text-[18px] sm:text-[22px] font-semibold text-[#ebedf5] tracking-tight">
                       @{username}
                     </span>
@@ -190,7 +219,6 @@ export default function ProfileLayout({
                       </svg>
                     </div>
                   </div>
-                  {/* show actual email below */}
                   <p className="text-[12px] sm:text-[13px] text-[#3f4357] truncate max-w-[180px] sm:max-w-none">
                     {email}
                   </p>
