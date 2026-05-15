@@ -88,12 +88,11 @@ export default function AccountSwitcher() {
   //    (fill in the href/route you want below)
   function handleSwitch(acc) {
     // TODO: you can pass ?hint=acc.email to pre-fill the login form
-    signOut({ callbackUrl: "/sign" /* ← change to your login route */ });
+    signOut({ callbackUrl: "/create-auth" });
   }
 
   function handleAddAccount() {
-    // TODO: change the URL below to your sign-in / sign-up route
-    signOut({ callbackUrl: "/sign" /* ← change to your login/signup route */ });
+    signOut({ callbackUrl: "/create-auth" });
   }
 
   function handleRemove(e, email) {
@@ -223,7 +222,7 @@ export default function AccountSwitcher() {
 
           {/* Go to profile — fill href */}
           <a
-            href="/create-auth" /* ← your profile route */
+            href="/Profile"
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
                        text-[12.5px] font-medium text-[#5a5f80]
                        hover:bg-[#161820] hover:text-[#c8cad4]
@@ -242,7 +241,7 @@ export default function AccountSwitcher() {
 
           {/* Sign out */}
           <button
-            onClick={() => signOut({ callbackUrl: "/sign" /* ← your login route */ })}
+            onClick={() => signOut({ callbackUrl: "/create-auth" })}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
                        text-[12.5px] font-medium text-[#5a3a3a]
                        hover:bg-[#1c1414] hover:text-[#e05a5a]
