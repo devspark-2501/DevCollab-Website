@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import AccountSwitcher from "@/components/ui/AccountSwitcher"; // ← adjust path if needed
+import AccountSwitcher from "@/app/Components/ui/AccountSwitcher";
 
 export const NavBar = () => {
   const { data: session, status } = useSession();
@@ -43,7 +43,7 @@ export const NavBar = () => {
               <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
             ) : session ? (
               // ── replaced the plain <Link> avatar with the AccountSwitcher ──
-              <AccountSwitcher /> // imporatnt: this component handles the avatar, dropdown, and sign-out logic internally
+              <AccountSwitcher />
             ) : (
               <Link href="/sign-up">
                 <button className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white text-sm">
