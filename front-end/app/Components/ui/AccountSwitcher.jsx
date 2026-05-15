@@ -223,7 +223,7 @@ export default function AccountSwitcher() {
 
           {/* Go to profile — fill href */}
           <a
-            href="/Profile" /* ← your profile route */
+            href="/create-auth" /* ← your profile route */
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
                        text-[12.5px] font-medium text-[#5a5f80]
                        hover:bg-[#161820] hover:text-[#c8cad4]
