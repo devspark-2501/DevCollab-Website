@@ -162,5 +162,6 @@ export default function FollowListModal({ type, apiBase, onClose, title }) {
         </div>
       </div>
     </div>
+    
   );
 }
