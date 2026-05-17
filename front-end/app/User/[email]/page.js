@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import FollowListModal from "@/app/Components/essentials/FollowListModal";
 
 const COLORS = [
   "bg-[#1d2b5c] text-[#8ba4f5] border-[#2a3a7a]",
@@ -62,13 +63,11 @@ export default function PublicProfilePage() {
   const [followerCount, setFollowerCount]   = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [followLoading, setFollowLoading]   = useState(false);
+  const [followModal, setFollowModal]       = useState(null); // null | "followers" | "following"
 
-  const email = decodeURIComponent(params.email);
+  const email           = decodeURIComponent(params.email);
+  const displayUsername = user?.username || user?.name || email.split("@")[0];
 
-  // ── my own username from session
-  const myUsername = session?.user?.username || session?.user?.name;
-
-  // redirect if viewing own profile
   useEffect(() => {
     if (session?.user?.email === email) router.replace("/Profile");
   }, [session, email]);
@@ -110,9 +109,6 @@ export default function PublicProfilePage() {
 
   const fadeUp = `transition-all duration-500 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`;
 
-  // ── username to display — from DB (most reliable)
-  const displayUsername = user?.username || user?.name || email.split("@")[0];
-
   if (!loading && notFound) {
     return (
       <div className="min-h-screen bg-[#111318] flex items-center justify-center px-4">
@@ -150,7 +146,6 @@ export default function PublicProfilePage() {
           <span className="text-[#1e2029]">/</span>
           <Link href="/Explore" className="text-[#3a4470] hover:text-[#8ba4f5] transition-colors">Explore</Link>
           <span className="text-[#1e2029]">/</span>
-          {/* ✅ show @username in breadcrumb */}
           <span className="text-[#5a5f72] truncate max-w-[120px] sm:max-w-[200px]">
             {loading ? "Loading…" : `@${displayUsername}`}
           </span>
@@ -176,7 +171,6 @@ export default function PublicProfilePage() {
         <div className={`flex items-end justify-between -mt-10 sm:-mt-12 mb-8 flex-wrap gap-4 ${fadeUp}`}
              style={{ transitionDelay: "0.05s" }}>
           <div className="flex items-end gap-3 sm:gap-4">
-            {/* avatar — initial from username */}
             <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full
                              border-[3px] border-[#111318] outline outline-[1.5px] outline-[#2a2e3e]
                              flex items-center justify-center
@@ -188,12 +182,9 @@ export default function PublicProfilePage() {
               <div className="flex items-center gap-2 mb-1">
                 {loading
                   ? <div className="h-6 w-36 bg-[#1e2029] rounded animate-pulse" />
-                  : <>
-                      {/* ✅ show @username as the main display */}
-                      <span className="text-[18px] sm:text-[22px] font-semibold text-[#ebedf5] tracking-tight">
-                        @{displayUsername}
-                      </span>
-                    </>
+                  : <span className="text-[18px] sm:text-[22px] font-semibold text-[#ebedf5] tracking-tight">
+                      @{displayUsername}
+                    </span>
                 }
               </div>
               {loading
@@ -231,16 +222,34 @@ export default function PublicProfilePage() {
           </div>
         </div>
 
-        {/* stats */}
+        {/* ── STATS — Followers & Following clickable ── */}
         <div className={`grid grid-cols-3 gap-2 mb-6 ${fadeUp}`} style={{ transitionDelay: "0.12s" }}>
           {[
-            { num: loading ? "—" : posts.length,   label: "Posts"     },
-            { num: loading ? "—" : followerCount,  label: "Followers" },
-            { num: loading ? "—" : followingCount, label: "Following" },
+            {
+              num:     loading ? "—" : posts.length,
+              label:   "Posts",
+              onClick: null,
+            },
+            {
+              num:     loading ? "—" : followerCount,
+              label:   "Followers",
+              onClick: () => setFollowModal("followers"),
+            },
+            {
+              num:     loading ? "—" : followingCount,
+              label:   "Following",
+              onClick: () => setFollowModal("following"),
+            },
           ].map((s) => (
-            <div key={s.label}
-              className="bg-[#13161f] border border-[#1e2029] rounded-xl p-3 sm:p-4 text-center
-                         hover:border-[#2a3060] transition-colors">
+            <div
+              key={s.label}
+              onClick={s.onClick || undefined}
+              className={`bg-[#13161f] border border-[#1e2029] rounded-xl p-3 sm:p-4 text-center
+                           transition-colors
+                           ${s.onClick
+                             ? "hover:border-[#2a3a7a] hover:bg-[#14172a] cursor-pointer"
+                             : "cursor-default"}`}
+            >
               <div className="text-xl sm:text-2xl font-semibold text-[#ebedf5] tracking-tight font-mono">
                 {s.num}
               </div>
@@ -256,7 +265,6 @@ export default function PublicProfilePage() {
           <div className="bg-[#13161f] border border-[#1e2029] rounded-xl p-5">
             <p className="text-[10px] font-semibold tracking-widest uppercase text-[#2e3244] mb-4">About</p>
             <div className="space-y-3">
-              {/* username row */}
               <div className="flex items-start gap-2.5 pb-3 border-b border-[#191b24]">
                 <div className="text-[#3a4470] mt-0.5 shrink-0">
                   <Icon size={13}>
@@ -269,7 +277,6 @@ export default function PublicProfilePage() {
                   <p className="text-[13px] text-[#8ba4f5] font-mono">@{displayUsername}</p>
                 </div>
               </div>
-              {/* email row */}
               <div className="flex items-start gap-2.5">
                 <div className="text-[#3a4470] mt-0.5 shrink-0">
                   <Icon size={13}>
@@ -297,7 +304,6 @@ export default function PublicProfilePage() {
         <div className={`flex items-center gap-2 mb-6 ${fadeUp}`} style={{ transitionDelay: "0.22s" }}>
           <span className="inline-block px-3 py-1 text-[11px] rounded-full
                            bg-[#1d2b5c]/60 text-[#8ba4f5] border border-[#2a3a7a]/50 tracking-wide">
-            {/* ✅ use username in posts label */}
             {loading ? "Posts" : `@${displayUsername}'s Posts`}
           </span>
           {!loading && (
@@ -344,7 +350,6 @@ export default function PublicProfilePage() {
                       {post.userName?.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      {/* ✅ post card shows @username */}
                       <p className="text-[13.5px] font-semibold text-[#ebedf5] leading-none font-mono">
                         @{post.userName}
                       </p>
@@ -358,13 +363,10 @@ export default function PublicProfilePage() {
                     Post
                   </span>
                 </div>
-
                 <div className="border-t border-[#191b24] mb-3" />
-
                 <p className="text-[13.5px] text-[#8a8fa8] leading-relaxed whitespace-pre-wrap">
                   {post.userContent}
                 </p>
-
                 <div className="flex items-center gap-5 mt-4 pt-3 border-t border-[#191b24]">
                   <span className="flex items-center gap-1.5 text-[11.5px] text-[#3a4470]">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
@@ -390,6 +392,18 @@ export default function PublicProfilePage() {
           </div>
         )}
       </div>
+
+      {/* ── FOLLOW LIST MODAL ── */}
+      {followModal && (
+        <FollowListModal
+          type={followModal}
+          apiBase={`/api/user/${encodeURIComponent(email)}`}
+          title={followModal === "followers"
+            ? `@${displayUsername}'s Followers`
+            : `@${displayUsername} is Following`}
+          onClose={() => setFollowModal(null)}
+        />
+      )}
     </div>
   );
 }
