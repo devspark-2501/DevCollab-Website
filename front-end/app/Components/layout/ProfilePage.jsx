@@ -4,6 +4,7 @@ import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useState, useRef } from "react";
 import PostFeed from "../essentials/PostFeed";
+import FollowListModal from "../essentials/FollowListModal";
 
 const NAV = [
   { id: "home",   label: "Home",   href: "/",     icon: <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/> },
@@ -55,20 +56,13 @@ function Sidebar({ expanded, onToggle, active, onNav, mobileOpen, onMobileClose,
                            ? "bg-[#161c2e] text-[#8ba4f5] border-[#1e2a4a] font-medium"
                            : "text-[#5a5f72] border-transparent hover:bg-[#161820] hover:text-[#c8cad4]"}`;
             const content = <><Icon>{icon}</Icon>{expanded && <span>{label}</span>}</>;
-
-            // ── "Post" nav item: scroll to posts section instead of navigating
             if (id === "post") {
               return (
-                <div key={id} className={cls} onClick={() => {
-                  onNav(id);
-                  onMobileClose();
-                  onPostClick();   // ← triggers the scroll
-                }}>
+                <div key={id} className={cls} onClick={() => { onNav(id); onMobileClose(); onPostClick(); }}>
                   {content}
                 </div>
               );
             }
-
             return href
               ? <Link key={id} href={href} className={cls} onClick={() => { onNav(id); onMobileClose(); }}>{content}</Link>
               : <div key={id} className={cls} onClick={() => { onNav(id); onMobileClose(); }}>{content}</div>;
@@ -107,10 +101,10 @@ export default function ProfileLayout({
   const [followerCount, setFollowerCount]     = useState(0);
   const [followingCount, setFollowingCount]   = useState(0);
   const [statsLoading, setStatsLoading]       = useState(true);
+  const [followModal, setFollowModal]         = useState(null); // null | "followers" | "following"
 
   const postSectionRef = useRef(null);
 
-  // ── pull username directly from session — single source of truth
   const username = session?.user?.username || session?.user?.name || "dev";
 
   useEffect(() => {
@@ -129,16 +123,11 @@ export default function ProfileLayout({
       .finally(() => setStatsLoading(false));
   }, []);
 
-  // ── scrolls the posts section into view with extra breathing room,
-  //    then opens the new-post modal after the scroll settles
   function handleScrollToPosts() {
     if (!postSectionRef.current) return;
-
-    // Find the scrollable parent (the flex-1 overflow-y-auto div)
     const scrollParent = postSectionRef.current.closest(".overflow-y-auto");
     if (scrollParent) {
-      const sectionTop = postSectionRef.current.offsetTop;
-      scrollParent.scrollTo({ top: sectionTop - 32, behavior: "smooth" });
+      scrollParent.scrollTo({ top: postSectionRef.current.offsetTop - 32, behavior: "smooth" });
     } else {
       postSectionRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
@@ -162,7 +151,7 @@ export default function ProfileLayout({
         onNav={setActiveNav}
         mobileOpen={mobileSidebarOpen}
         onMobileClose={() => setMobileSidebarOpen(false)}
-        onPostClick={handleScrollToPosts}  // ← passed down here
+        onPostClick={handleScrollToPosts}
       />
 
       <div className="flex-1 overflow-y-auto flex flex-col min-w-0">
@@ -250,16 +239,34 @@ export default function ProfileLayout({
               </div>
             </div>
 
-            {/* stats */}
+            {/* ── STATS — Followers & Following are clickable ── */}
             <div className={`grid grid-cols-3 gap-2 mb-6 ${fadeUp}`} style={{ transitionDelay: "0.12s" }}>
               {[
-                { num: "0",                                   label: "Projects"  },
-                { num: statsLoading ? "…" : followerCount,   label: "Followers" },
-                { num: statsLoading ? "…" : followingCount,  label: "Following" },
+                {
+                  num:     "0",
+                  label:   "Projects",
+                  onClick: null,
+                },
+                {
+                  num:     statsLoading ? "…" : followerCount,
+                  label:   "Followers",
+                  onClick: () => setFollowModal("followers"),
+                },
+                {
+                  num:     statsLoading ? "…" : followingCount,
+                  label:   "Following",
+                  onClick: () => setFollowModal("following"),
+                },
               ].map(s => (
-                <div key={s.label}
-                  className="bg-[#13161f] border border-[#1e2029] rounded-xl p-3 sm:p-4 text-center
-                             hover:border-[#2a3060] transition-colors cursor-default">
+                <div
+                  key={s.label}
+                  onClick={s.onClick || undefined}
+                  className={`bg-[#13161f] border border-[#1e2029] rounded-xl p-3 sm:p-4 text-center
+                               transition-colors
+                               ${s.onClick
+                                 ? "hover:border-[#2a3a7a] hover:bg-[#14172a] cursor-pointer"
+                                 : "cursor-default"}`}
+                >
                   <div className="text-xl sm:text-2xl font-semibold text-[#ebedf5] tracking-tight font-mono">
                     {s.num}
                   </div>
@@ -360,6 +367,18 @@ export default function ProfileLayout({
         </div>
 
       </div>
+
+      {/* ── FOLLOW LIST MODAL ── */}
+      {followModal && (
+        <FollowListModal
+          type={followModal}
+          apiBase="/api/user/me"
+          title={followModal === "followers"
+            ? `@${username}'s Followers`
+            : `@${username} is Following`}
+          onClose={() => setFollowModal(null)}
+        />
+      )}
     </div>
   );
 }
