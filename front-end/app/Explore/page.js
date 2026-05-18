@@ -6,6 +6,7 @@ import Main_Explore from "../Components/ExploreRoute/Main-Explore"
 //   title: "Dev Collab | Explore"
 // };
 
+// doesnt work rn
 export default function Explore() {
     return (
         <div>
