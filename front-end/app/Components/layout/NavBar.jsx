@@ -5,9 +5,11 @@ import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import AccountSwitcher from "@/app/Components/ui/AccountSwitcher";
 
+// ── helpers ───────────────────────────────────────────────────────────────────
 const Icon = ({ size = 16, children }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-       stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+       stroke="currentColor" strokeWidth="1.8"
+       strokeLinecap="round" strokeLinejoin="round">
     {children}
   </svg>
 );
@@ -17,7 +19,11 @@ function TimeAgo({ date }) {
   if (diff < 60)    return <span>{diff}s ago</span>;
   if (diff < 3600)  return <span>{Math.floor(diff / 60)}m ago</span>;
   if (diff < 86400) return <span>{Math.floor(diff / 3600)}h ago</span>;
-  return <span>{new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>;
+  return (
+    <span>
+      {new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+    </span>
+  );
 }
 
 const COLORS = [
@@ -30,44 +36,40 @@ const COLORS = [
 ];
 function getColor(name = "") { return COLORS[name.charCodeAt(0) % COLORS.length]; }
 
-// ── Notification Bell ─────────────────────────────────────────────────────────
+// ── Notification dropdown ─────────────────────────────────────────────────────
 function NotificationBell() {
-  const { data: session }               = useSession();
-  const [unread, setUnread]             = useState(0);
-  const [open, setOpen]                 = useState(false);
+  const { data: session }                 = useSession();
+  const [open, setOpen]                   = useState(false);
+  const [unread, setUnread]               = useState(0);
   const [notifications, setNotifications] = useState([]);
-  const [clearing, setClearing]         = useState(false);
-  const dropdownRef                     = useRef(null);
-
-  // poll every 30s
-  useEffect(() => {
-    if (!session?.user) return;
-
-    function fetch_notifs() {
-      fetch("/api/notifications")
-        .then((r) => r.json())
-        .then((d) => {
-          setUnread(d.unreadCount || 0);
-          setNotifications(d.notifications || []);
-        })
-        .catch(() => {});
-    }
-
-    fetch_notifs();
-    const id = setInterval(fetch_notifs, 30000);
-    return () => clearInterval(id);
-  }, [session]);
+  const [clearing, setClearing]           = useState(false);
+  const ref                               = useRef(null);
 
   // close on outside click
   useEffect(() => {
-    function handle(e) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setOpen(false);
-      }
+    function onClickOutside(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
     }
-    document.addEventListener("mousedown", handle);
-    return () => document.removeEventListener("mousedown", handle);
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
+
+  // fetch + poll every 30s
+  useEffect(() => {
+    if (!session?.user) return;
+    function load() {
+      fetch("/api/notifications")
+        .then((r) => r.json())
+        .then((d) => {
+          setNotifications(d.notifications || []);
+          setUnread(d.unreadCount || 0);
+        })
+        .catch(() => {});
+    }
+    load();
+    const id = setInterval(load, 30000);
+    return () => clearInterval(id);
+  }, [session]);
 
   function handleOpen() {
     setOpen((v) => !v);
@@ -80,38 +82,42 @@ function NotificationBell() {
 
   async function handleClearAll() {
     setClearing(true);
-    try {
-      await fetch("/api/notifications", { method: "DELETE" });
-      setNotifications([]);
-      setUnread(0);
-      setOpen(false);
-    } catch {}
-    finally { setClearing(false); }
+    await fetch("/api/notifications", { method: "DELETE" }).catch(() => {});
+    setNotifications([]);
+    setUnread(0);
+    setOpen(false);
+    setClearing(false);
   }
 
-  function handleDismissOne(id) {
+  function handleDismiss(id) {
     setNotifications((prev) => prev.filter((n) => n._id !== id));
   }
 
+  // ── only render when logged in
   if (!session?.user) return null;
 
   return (
-    <div className="relative" ref={dropdownRef}>
-      {/* bell button */}
+    <div className="relative" ref={ref}>
+
+      {/* ── bell button ── */}
       <button
         onClick={handleOpen}
+        aria-label="Notifications"
         className={`relative w-9 h-9 flex items-center justify-center rounded-lg border
                     transition-all
                     ${open
-                      ? "bg-[#1d2b5c]/60 border-[#2a3a7a] text-[#8ba4f5]"
+                      ? "bg-[#1d2b5c]/70 border-[#2a3a7a] text-[#8ba4f5]"
                       : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white"}`}
       >
+        {/* bell icon */}
         <Icon size={16}>
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
           <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
         </Icon>
+
+        {/* unread badge */}
         {unread > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-[17px] h-[17px] px-0.5
+          <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-0.5
                            rounded-full bg-[#8ba4f5] text-[#0d0f14]
                            text-[9px] font-bold flex items-center justify-center leading-none">
             {unread > 9 ? "9+" : unread}
@@ -119,9 +125,9 @@ function NotificationBell() {
         )}
       </button>
 
-      {/* dropdown */}
+      {/* ── dropdown ── */}
       {open && (
-        <div className="absolute top-full right-0 mt-3 w-[320px] z-[999]
+        <div className="absolute top-[calc(100%+10px)] right-0 w-[320px] z-[999]
                         bg-[#13161f] border border-[#1e2029] rounded-2xl shadow-2xl
                         overflow-hidden">
 
@@ -149,7 +155,7 @@ function NotificationBell() {
           {/* list */}
           <div className="max-h-[380px] overflow-y-auto">
 
-            {/* empty */}
+            {/* empty state */}
             {notifications.length === 0 && (
               <div className="text-center py-10">
                 <div className="w-10 h-10 rounded-full bg-[#161820] border border-[#1e2029]
@@ -164,16 +170,17 @@ function NotificationBell() {
               </div>
             )}
 
+            {/* rows */}
             {notifications.map((n) => (
-              <div
-                key={n._id}
+              <div key={n._id}
                 className={`flex items-start gap-3 px-4 py-3 border-b border-[#1e2029]
                             last:border-0 transition-colors group
-                            ${!n.read ? "bg-[#161c2e]/50" : "hover:bg-[#161820]"}`}
-              >
+                            ${!n.read ? "bg-[#161c2e]/50" : "hover:bg-[#161820]"}`}>
+
                 {/* avatar */}
-                <div className={`w-8 h-8 rounded-xl border flex items-center justify-center
-                                 text-[12px] font-bold shrink-0 mt-0.5 ${getColor(n.fromName || "")}`}>
+                <div className={`w-8 h-8 rounded-xl border-2 flex items-center justify-center
+                                 text-[12px] font-bold shrink-0 mt-0.5
+                                 ${getColor(n.fromName || "")}`}>
                   {n.fromName?.charAt(0).toUpperCase()}
                 </div>
 
@@ -185,8 +192,7 @@ function NotificationBell() {
                       ? "❤️ liked your post"
                       : n.type === "comment"
                       ? "💬 replied to your post"
-                      : "👤 started following you"
-                    }
+                      : "👤 started following you"}
                   </p>
                   {n.postSnippet && n.type !== "follow" && (
                     <p className="text-[10.5px] text-[#3f4357] mt-0.5 truncate">
@@ -198,14 +204,12 @@ function NotificationBell() {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
-                  {/* unread dot */}
+                <div className="flex flex-col items-center gap-1.5 shrink-0">
                   {!n.read && (
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#8ba4f5]" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#8ba4f5] mt-1" />
                   )}
-                  {/* dismiss single */}
                   <button
-                    onClick={() => handleDismissOne(n._id)}
+                    onClick={() => handleDismiss(n._id)}
                     className="opacity-0 group-hover:opacity-100 text-[#2e3244]
                                hover:text-[#e05a5a] transition-all">
                     <Icon size={11}>
@@ -218,7 +222,7 @@ function NotificationBell() {
             ))}
           </div>
 
-          {/* footer link */}
+          {/* footer */}
           {notifications.length > 0 && (
             <div className="px-4 py-2.5 border-t border-[#1e2029] text-center">
               <p className="text-[10.5px] text-[#2e3244]">
@@ -244,7 +248,8 @@ export const NavBar = () => {
   return (
     <div className="absolute top-6 left-1/2 -translate-x-1/2 w-full flex justify-center z-50">
       <div className="w-[90%] max-w-6xl px-6 py-2 rounded-xl bg-[#0b0f1a]/80 backdrop-blur-xl
-                      border border-white/10 shadow-lg flex flex-col md:flex-row md:items-center justify-between">
+                      border border-white/10 shadow-lg
+                      flex flex-col md:flex-row md:items-center justify-between">
 
         {/* top row */}
         <div className="flex items-center justify-between w-full">
@@ -254,22 +259,23 @@ export const NavBar = () => {
             <img src="/logo.png" alt="DevCollab Logo" className="h-12 w-auto" />
           </Link>
 
-          {/* desktop links */}
+          {/* desktop nav links */}
           <div className="hidden md:flex gap-8 text-gray-300 text-sm">
-            <Link href="/Explore" className="hover:text-white transition-colors">Explore</Link>
-            <Link href="/Feed"    className="hover:text-white transition-colors">Posts</Link>
+            <Link href="/Explore"   className="hover:text-white transition-colors">Explore</Link>
+            <Link href="/Feed"      className="hover:text-white transition-colors">Posts</Link>
             <Link href="/Community" className="hover:text-white transition-colors">Community</Link>
-            <Link href="/Profile" className="hover:text-white transition-colors">Profile</Link>
+            <Link href="/Profile"   className="hover:text-white transition-colors">Profile</Link>
           </div>
 
           {/* right side */}
           <div className="flex items-center gap-2.5">
 
             {status === "loading" ? (
-              <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent
+                              rounded-full animate-spin" />
             ) : session ? (
               <>
-                {/* ── bell only when logged in ── */}
+                {/* ── bell — only visible when logged in ── */}
                 <NotificationBell />
                 <AccountSwitcher />
               </>
@@ -287,10 +293,14 @@ export const NavBar = () => {
               className="md:hidden flex flex-col justify-center items-center w-8 h-8 gap-1.5"
               onClick={() => setMenuOpen(!menuOpen)}
             >
-              <span className={`block w-5 h-0.5 bg-gray-300 transition-transform ${menuOpen ? "rotate-45 translate-y-2" : ""}`} />
-              <span className={`block w-5 h-0.5 bg-gray-300 transition-opacity ${menuOpen ? "opacity-0" : ""}`} />
-              <span className={`block w-5 h-0.5 bg-gray-300 transition-transform ${menuOpen ? "-rotate-45 -translate-y-2" : ""}`} />
+              <span className={`block w-5 h-0.5 bg-gray-300 transition-transform
+                               ${menuOpen ? "rotate-45 translate-y-2" : ""}`} />
+              <span className={`block w-5 h-0.5 bg-gray-300 transition-opacity
+                               ${menuOpen ? "opacity-0" : ""}`} />
+              <span className={`block w-5 h-0.5 bg-gray-300 transition-transform
+                               ${menuOpen ? "-rotate-45 -translate-y-2" : ""}`} />
             </button>
+
           </div>
         </div>
 
@@ -303,12 +313,12 @@ export const NavBar = () => {
             <Link href="/Community" onClick={() => setMenuOpen(false)}>Community</Link>
             <Link href="/Profile"   onClick={() => setMenuOpen(false)}>Profile</Link>
 
-            {/* mobile notifications — only when logged in */}
+            {/* mobile: show notifications section when logged in */}
             {session && (
-              <div className="pt-2 border-t border-white/10">
-                <p className="text-[11px] text-[#3a4470] uppercase tracking-widest mb-3">
+              <div className="pt-3 border-t border-white/10 flex items-center justify-between">
+                <span className="text-[11px] text-[#3a4470] uppercase tracking-widest">
                   Notifications
-                </p>
+                </span>
                 <NotificationBell />
               </div>
             )}
