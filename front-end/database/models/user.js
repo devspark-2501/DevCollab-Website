@@ -20,6 +20,17 @@ const UserSchema = new Schema(
     },
     followers: [{ type: String }],
     following: [{ type: String }],
+    notifications: [
+      {
+        fromName:    { type: String },
+        fromEmail:   { type: String },
+        type:        { type: String, enum: ["like", "comment", "follow"] },
+        postId:      { type: String },
+        postSnippet: { type: String },
+        read:        { type: Boolean, default: false },
+        createdAt:   { type: Date,    default: Date.now },
+      },
+    ],
   },
   { timestamps: true }
 );
