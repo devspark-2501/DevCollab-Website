@@ -1,61 +1,39 @@
 import mongoose, { models, Schema } from "mongoose";
 
-const CommentSchema = new Schema({
-  userEmail: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  userName: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  text: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-}, { timestamps: true });
-
-const PostSchema = new Schema(
+const UserSchema = new Schema(
   {
-    userEmail: {
-      type: String,
+    username: {
+      type:     String,
       required: true,
-      trim: true,
-      index: true,
+      unique:   true,
+      trim:     true,
     },
-
-    userName: {
-      type: String,
+    email: {
+      type:     String,
       required: true,
-      trim: true,
+      unique:   true,
+      trim:     true,
     },
-
-    userContent: {
-      type: String,
+    password: {
+      type:     String,
       required: true,
-      trim: true,
     },
-
-    likes: {
-      type: Number,
-      default: 0,
-    },
-
-    likedBy: [
+    followers: [{ type: String }],
+    following: [{ type: String }],
+    notifications: [
       {
-        type: String, // store user email
+        fromName:    { type: String },
+        fromEmail:   { type: String },
+        type:        { type: String, enum: ["like", "comment", "follow"] },
+        postId:      { type: String },
+        postSnippet: { type: String },
+        read:        { type: Boolean, default: false },
+        createdAt:   { type: Date,    default: Date.now },
       },
     ],
-
-
-    comments: [CommentSchema],
   },
   { timestamps: true }
 );
 
-const Post = models.Post || mongoose.model("Post", PostSchema);
-
-export default Post;
+const User = models.User || mongoose.model("User", UserSchema);
+export default User;
