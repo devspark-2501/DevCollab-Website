@@ -37,7 +37,6 @@ function TimeAgo({ date }) {
   return <span>{new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>;
 }
 
-// ─── SIDEBAR ─────────────────────────────────────────────────────────────────
 function Sidebar({ expanded, onToggle, active, mobileOpen, onMobileClose }) {
   const { data: session } = useSession();
   return (
@@ -92,7 +91,9 @@ function Sidebar({ expanded, onToggle, active, mobileOpen, onMobileClose }) {
                   </div>
               }
               <div className="min-w-0">
-                <p className="text-[12px] font-medium text-[#c8cad4] truncate leading-none">{session.user.name}</p>
+                <p className="text-[12px] font-medium text-[#c8cad4] truncate leading-none font-mono">
+                  @{session.user.username || session.user.name}
+                </p>
                 <p className="text-[10px] text-[#3f4357] truncate mt-0.5">{session.user.email}</p>
               </div>
             </div>
@@ -135,7 +136,6 @@ function SkeletonPost() {
   );
 }
 
-// ─── POST CARD (real likes + comments, persisted) ────────────────────────────
 function PostCard({ post: initialPost, animate, userEmail, userName }) {
   const [post, setPost]                 = useState(initialPost);
   const [liked, setLiked]               = useState(
@@ -157,7 +157,6 @@ function PostCard({ post: initialPost, animate, userEmail, userName }) {
     return () => obs.disconnect();
   }, []);
 
-  // ── Like — saves to DB, syncs real count back
   async function handleLike() {
     const wasLiked = liked;
     setLiked(!wasLiked);
@@ -173,13 +172,11 @@ function PostCard({ post: initialPost, animate, userEmail, userName }) {
       setPost((p) => ({ ...p, likes: data.likes, likedBy: data.likedBy }));
       setLiked(data.likedBy.includes(userEmail));
     } catch {
-      // revert on failure
       setLiked(wasLiked);
       setPost((p) => ({ ...p, likes: wasLiked ? p.likes + 1 : p.likes - 1 }));
     }
   }
 
-  // ── Comment — saves to DB
   async function handleComment() {
     const text = commentText.trim();
     if (!text) return;
@@ -225,7 +222,9 @@ function PostCard({ post: initialPost, animate, userEmail, userName }) {
             {initial}
           </div>
           <div>
-            <p className="text-[14px] font-semibold text-[#ebedf5] leading-none">{post.userName}</p>
+            <p className="text-[14px] font-semibold text-[#ebedf5] leading-none font-mono">
+              @{post.userName}
+            </p>
             <p className="text-[10.5px] text-[#3f4357] mt-0.5">
               <TimeAgo date={post.createdAt} />
               <span className="mx-1.5 opacity-30">·</span>
@@ -239,14 +238,26 @@ function PostCard({ post: initialPost, animate, userEmail, userName }) {
         </span>
       </div>
 
-      {/* body */}
-      <p className="text-[14px] text-[#9094a8] leading-relaxed whitespace-pre-wrap break-words mt-4">
-        {post.userContent}
-      </p>
+      {/* text body */}
+      {post.userContent && (
+        <p className="text-[14px] text-[#9094a8] leading-relaxed whitespace-pre-wrap break-words mt-4">
+          {post.userContent}
+        </p>
+      )}
+
+      {/* image body */}
+      {post.image && (
+        <div className="mt-4 rounded-xl overflow-hidden border border-[#1e2029]">
+          <img
+            src={post.image}
+            alt={post.imageName || "post image"}
+            className="w-full max-h-[480px] object-cover"
+          />
+        </div>
+      )}
 
       {/* footer */}
       <div className="flex items-center gap-5 mt-4 pt-3 border-t border-[#191b24]">
-        {/* Like */}
         <button onClick={handleLike}
           className={`flex items-center gap-1.5 text-[12px] transition-all
             ${liked ? "text-[#8ba4f5]" : "text-[#3a4470] hover:text-[#8ba4f5]"}`}>
@@ -258,7 +269,6 @@ function PostCard({ post: initialPost, animate, userEmail, userName }) {
           {post.likes}
         </button>
 
-        {/* Reply toggle */}
         <button
           onClick={() => setShowComments((v) => !v)}
           className={`flex items-center gap-1.5 text-[12px] transition-colors
@@ -269,8 +279,8 @@ function PostCard({ post: initialPost, animate, userEmail, userName }) {
           {comments.length > 0 ? comments.length : "Reply"}
         </button>
 
-        {/* Share */}
-        <button className="flex items-center gap-1.5 text-[12px] text-[#3a4470] hover:text-[#8ba4f5] transition-colors ml-auto">
+        <button className="flex items-center gap-1.5 text-[12px] text-[#3a4470]
+                           hover:text-[#8ba4f5] transition-colors ml-auto">
           <Icon size={14}>
             <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
             <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
@@ -280,7 +290,7 @@ function PostCard({ post: initialPost, animate, userEmail, userName }) {
         </button>
       </div>
 
-      {/* ── Comments ── */}
+      {/* comments */}
       {showComments && (
         <div className="mt-4 pt-4 border-t border-[#191b24] space-y-3">
           {comments.length === 0 && (
@@ -288,7 +298,6 @@ function PostCard({ post: initialPost, animate, userEmail, userName }) {
               No replies yet. Be the first!
             </p>
           )}
-
           {comments.map((c) => (
             <div key={c._id} className="flex gap-2.5">
               <div className={`w-7 h-7 rounded-xl border flex items-center justify-center
@@ -297,7 +306,9 @@ function PostCard({ post: initialPost, animate, userEmail, userName }) {
               </div>
               <div className="flex-1 bg-[#0d0f14] border border-[#1e2029] rounded-xl px-3.5 py-2.5">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[12px] font-semibold text-[#c8cad4]">{c.userName}</span>
+                  <span className="text-[12px] font-semibold text-[#c8cad4] font-mono">
+                    @{c.userName}
+                  </span>
                   <span className="text-[10px] text-[#2e3244]"><TimeAgo date={c.createdAt} /></span>
                 </div>
                 <p className="text-[12.5px] text-[#7a7f96] leading-relaxed whitespace-pre-wrap">
@@ -306,8 +317,6 @@ function PostCard({ post: initialPost, animate, userEmail, userName }) {
               </div>
             </div>
           ))}
-
-          {/* Comment input */}
           <div className="flex gap-2.5 items-start pt-1">
             <div className={`w-7 h-7 rounded-xl border flex items-center justify-center
                              text-[11px] font-bold shrink-0 mt-0.5 ${getColor(userName || "")}`}>
@@ -318,10 +327,7 @@ function PostCard({ post: initialPost, animate, userEmail, userName }) {
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleComment();
-                  }
+                  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleComment(); }
                 }}
                 placeholder="Write a reply… (Enter to post)"
                 rows={2}
@@ -383,15 +389,18 @@ export default function Feed() {
   const [posting, setPosting]         = useState(false);
   const [postError, setPostError]     = useState("");
 
-  const sentinelRef = useRef(null);
+  // ── image state
+  const [imageData, setImageData]       = useState(null);
+  const [imageName, setImageName]       = useState("");
+  const [imagePreview, setImagePreview] = useState(null);
+  const fileInputRef                    = useRef(null);
 
-  // pull from session — passed down to PostCard
-  const userEmail = session?.user?.email;
-  const userName  = session?.user?.name;
+  const sentinelRef = useRef(null);
+  const userEmail   = session?.user?.email;
+  const userName    = session?.user?.username || session?.user?.name;
 
   useEffect(() => { setTimeout(() => setMounted(true), 60); }, []);
 
-  // wait for session so likedBy seeding works correctly
   useEffect(() => {
     if (!userEmail) return;
     fetch("/api/community/post")
@@ -428,20 +437,53 @@ export default function Feed() {
     }, 600);
   }, [page, allPosts, hasMore, loadingMore]);
 
+  // ── image picker
+  function handleImageSelect(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024) {
+      setPostError("Image must be under 4 MB.");
+      return;
+    }
+    setImageName(file.name);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setImageData(ev.target.result);
+      setImagePreview(ev.target.result);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removeImage() {
+    setImageData(null);
+    setImageName("");
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function closeModal() {
+    setNewPostOpen(false);
+    setContent("");
+    setPostError("");
+    removeImage();
+  }
+
   async function handlePost() {
-    if (!content.trim()) return setPostError("Write something first.");
+    if (!content.trim() && !imageData) {
+      return setPostError("Write something or add an image.");
+    }
     setPosting(true); setPostError("");
     try {
       const res  = await fetch("/api/community/post", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userContent: content }),
+        body: JSON.stringify({ userContent: content, image: imageData, imageName }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
       setAllPosts((prev) => [data.post, ...prev]);
       setPosts((prev)    => [data.post, ...prev]);
-      setContent(""); setNewPostOpen(false);
+      closeModal();
     } catch (e) { setPostError(e.message); }
     finally { setPosting(false); }
   }
@@ -518,11 +560,22 @@ export default function Feed() {
                     </div>
                 }
                 <p className="text-[13.5px] text-[#3f4357] group-hover:text-[#5a5f72] transition-colors flex-1">
-                  What's on your mind, {session.user?.name?.split(" ")[0]}?
+                  What's on your mind, {session.user?.username || session.user?.name?.split(" ")[0]}?
                 </p>
-                <div className="w-7 h-7 rounded-lg bg-[#1d2b5c] border border-[#2a3a7a]
-                                flex items-center justify-center text-[#8ba4f5] shrink-0">
-                  <Icon size={12}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></Icon>
+                <div className="flex items-center gap-2">
+                  {/* image hint icon */}
+                  <div className="w-7 h-7 rounded-lg bg-[#13161f] border border-[#1e2029]
+                                  flex items-center justify-center text-[#3a4470] shrink-0">
+                    <Icon size={12}>
+                      <rect x="3" y="3" width="18" height="18" rx="2"/>
+                      <circle cx="8.5" cy="8.5" r="1.5"/>
+                      <polyline points="21 15 16 10 5 21"/>
+                    </Icon>
+                  </div>
+                  <div className="w-7 h-7 rounded-lg bg-[#1d2b5c] border border-[#2a3a7a]
+                                  flex items-center justify-center text-[#8ba4f5] shrink-0">
+                    <Icon size={12}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></Icon>
+                  </div>
                 </div>
               </div>
             </div>
@@ -580,22 +633,27 @@ export default function Feed() {
         </div>
       </div>
 
-      {/* CREATE POST MODAL */}
+      {/* ── CREATE POST MODAL with image support ── */}
       {newPostOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
           <div className="w-full max-w-lg bg-[#13161f] border border-[#1e2029] rounded-2xl p-6 shadow-2xl">
+
+            {/* modal header */}
             <div className="flex items-center justify-between mb-5">
               <div>
                 <p className="text-[15px] font-semibold text-[#ebedf5]">New Post</p>
                 <p className="text-[11px] text-[#3f4357] mt-0.5">Share something with the community</p>
               </div>
-              <button onClick={() => { setNewPostOpen(false); setContent(""); setPostError(""); }}
+              <button onClick={closeModal}
                 className="w-7 h-7 flex items-center justify-center rounded-md border border-[#1e2029]
                            text-[#3a3d4a] hover:bg-[#161820] hover:text-[#e05a5a] transition-colors">
                 <Icon size={12}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></Icon>
               </button>
             </div>
+
             <div className="border-t border-[#1e2029] mb-5" />
+
+            {/* who's posting */}
             {session && (
               <div className="flex items-center gap-3 mb-4 px-3 py-2.5 rounded-xl bg-[#0d0f14] border border-[#1e2029]">
                 {session.user?.image
@@ -607,7 +665,9 @@ export default function Feed() {
                     </div>
                 }
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-medium text-[#c8cad4] truncate">{session.user?.name}</p>
+                  <p className="text-[13px] font-medium text-[#c8cad4] truncate font-mono">
+                    @{session.user?.username || session.user?.name}
+                  </p>
                   <p className="text-[10px] text-[#2e3244] truncate">{session.user?.email}</p>
                 </div>
                 <span className="flex items-center gap-1 text-[10px] text-emerald-400 shrink-0">
@@ -616,30 +676,96 @@ export default function Feed() {
                 </span>
               </div>
             )}
+
+            {/* text input */}
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="What's on your mind?"
+              placeholder="What's on your mind? (optional if adding image)"
               maxLength={500}
-              rows={5}
+              rows={3}
               autoFocus
               className="w-full bg-[#0d0f14] border border-[#1e2029] rounded-xl px-4 py-3
                          text-[14px] text-[#c8cad4] placeholder-[#2e3244] resize-none
-                         focus:outline-none focus:border-[#2a3a7a] transition-colors"
+                         focus:outline-none focus:border-[#2a3a7a] transition-colors mb-3"
             />
-            <div className="flex items-center justify-between mt-2 mb-5">
-              {postError ? <p className="text-[11px] text-red-400">{postError}</p> : <span />}
+
+            {/* ── IMAGE PICKER ── */}
+            {/* hidden file input — triggered by button */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png, image/jpeg, image/gif, image/webp"
+              onChange={handleImageSelect}
+              className="hidden"
+            />
+
+            {imagePreview ? (
+              /* image preview with remove button */
+              <div className="relative rounded-xl overflow-hidden border border-[#1e2029] mb-4">
+                <img
+                  src={imagePreview}
+                  alt="preview"
+                  className="w-full max-h-[240px] object-cover"
+                />
+                <button
+                  onClick={removeImage}
+                  className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70
+                             border border-white/20 flex items-center justify-center
+                             text-white hover:bg-red-500/80 transition-colors">
+                  <Icon size={12}>
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </Icon>
+                </button>
+                <div className="px-3 py-1.5 bg-[#0d0f14]/90">
+                  <p className="text-[10.5px] text-[#3f4357] truncate">{imageName}</p>
+                </div>
+              </div>
+            ) : (
+              /* browse button */
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl mb-4
+                           border border-dashed border-[#1e2029] text-[12.5px] text-[#3a4470]
+                           hover:border-[#2a3a7a] hover:text-[#8ba4f5] hover:bg-[#13161f]
+                           transition-all"
+              >
+                <Icon size={15}>
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </Icon>
+                Browse &amp; add image
+                <span className="text-[10.5px] text-[#2e3244]">
+                  PNG, JPG, GIF, WebP · max 4 MB
+                </span>
+              </button>
+            )}
+
+            {/* char count + error */}
+            <div className="flex items-center justify-between mb-5">
+              {postError
+                ? <p className="text-[11px] text-red-400 bg-red-500/10 border border-red-500/20
+                                rounded-xl px-3 py-1.5">{postError}</p>
+                : <span />
+              }
               <p className={`text-[10.5px] ml-auto ${content.length > 450 ? "text-amber-400" : "text-[#2e3244]"}`}>
                 {content.length}/500
               </p>
             </div>
+
+            {/* actions */}
             <div className="flex gap-2">
-              <button onClick={() => { setNewPostOpen(false); setContent(""); setPostError(""); }}
+              <button onClick={closeModal}
                 className="flex-1 py-2.5 rounded-lg text-[13px] font-medium border border-[#1e2029]
                            text-[#4a4f62] hover:bg-[#161820] hover:text-[#8ba4f5] transition-colors">
                 Cancel
               </button>
-              <button onClick={handlePost} disabled={posting || !content.trim()}
+              <button
+                onClick={handlePost}
+                disabled={posting || (!content.trim() && !imageData)}
                 className="flex-1 py-2.5 rounded-lg text-[13px] font-medium
                            bg-[#1d2b5c] border border-[#2a3a7a] text-[#8ba4f5]
                            hover:bg-[#22336e] transition-colors
@@ -654,6 +780,7 @@ export default function Feed() {
                 }
               </button>
             </div>
+
           </div>
         </div>
       )}
