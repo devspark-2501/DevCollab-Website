@@ -252,6 +252,7 @@ function PostCard({ post: initialPost, animate, userEmail, userName }) {
             src={post.image}
             alt={post.imageName || "post image"}
             className="w-full max-h-[480px] object-cover"
+            loading="lazy"
           />
         </div>
       )}
