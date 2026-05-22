@@ -1,39 +1,49 @@
 import mongoose, { models, Schema } from "mongoose";
 
-const UserSchema = new Schema(
+const CommentSchema = new Schema({
+  userEmail: { type: String, required: true, trim: true },
+  userName:  { type: String, required: true, trim: true },
+  text:      { type: String, required: true, trim: true },
+}, { timestamps: true });
+
+const PostSchema = new Schema(
   {
-    username: {
+    userEmail: {
       type:     String,
       required: true,
-      unique:   true,
+      trim:     true,
+      index:    true,
+    },
+    userName: {
+      type:     String,
+      required: true,
       trim:     true,
     },
-    email: {
-      type:     String,
-      required: true,
-      unique:   true,
-      trim:     true,
+    // text content — now optional if image is provided
+    userContent: {
+      type:    String,
+      trim:    true,
+      default: "",
     },
-    password: {
-      type:     String,
-      required: true,
+    // image stored as base64 data URL  e.g. "data:image/png;base64,..."
+    image: {
+      type:    String,
+      default: null,
     },
-    followers: [{ type: String }],
-    following: [{ type: String }],
-    notifications: [
-      {
-        fromName:    { type: String },
-        fromEmail:   { type: String },
-        type:        { type: String, enum: ["like", "comment", "follow"] },
-        postId:      { type: String },
-        postSnippet: { type: String },
-        read:        { type: Boolean, default: false },
-        createdAt:   { type: Date,    default: Date.now },
-      },
-    ],
+    // original filename for display
+    imageName: {
+      type:    String,
+      default: null,
+    },
+    likes: {
+      type:    Number,
+      default: 0,
+    },
+    likedBy: [{ type: String }],
+    comments: [CommentSchema],
   },
   { timestamps: true }
 );
 
-const User = models.User || mongoose.model("User", UserSchema);
-export default User;
+const Post = models.Post || mongoose.model("Post", PostSchema);
+export default Post;
