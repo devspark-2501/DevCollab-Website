@@ -7,6 +7,7 @@ export const connectDB = async() => {
         return;
     }
 
+    // updated code!!
     try {
         const conn = await mongoose.connect(process.env.MONGO_URI, {
             dbName: "test", // DB Name which had sevral collection in it!!
