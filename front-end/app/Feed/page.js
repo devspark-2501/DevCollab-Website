@@ -37,7 +37,7 @@ function TimeAgo({ date }) {
   return <span>{new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>;
 }
 
-// ─── SIDEBAR ─────────────────────────────────────────────────────────────────
+// ─── SIDEBAR ──────────────────────────────────────────────────────────────────
 function Sidebar({ expanded, onToggle, active, mobileOpen, onMobileClose }) {
   const { data: session } = useSession();
   return (
@@ -87,12 +87,14 @@ function Sidebar({ expanded, onToggle, active, mobileOpen, onMobileClose }) {
                 ? <img src={session.user.image} alt="av"
                        className="w-7 h-7 rounded-full border border-[#2a2e3e] object-cover shrink-0"/>
                 : <div className={`w-7 h-7 rounded-full border flex items-center justify-center
-                                   text-[11px] font-semibold shrink-0 ${getColor(session.user.name || "")}`}>
-                    {session.user.name?.charAt(0).toUpperCase()}
+                                   text-[11px] font-semibold shrink-0 ${getColor(session.user.username || session.user.name || "")}`}>
+                    {(session.user.username || session.user.name)?.charAt(0).toUpperCase()}
                   </div>
               }
               <div className="min-w-0">
-                <p className="text-[12px] font-medium text-[#c8cad4] truncate leading-none">{session.user.name}</p>
+                <p className="text-[12px] font-medium text-[#c8cad4] truncate leading-none font-mono">
+                  @{session.user.username || session.user.name}
+                </p>
                 <p className="text-[10px] text-[#3f4357] truncate mt-0.5">{session.user.email}</p>
               </div>
             </div>
@@ -118,34 +120,37 @@ function Sidebar({ expanded, onToggle, active, mobileOpen, onMobileClose }) {
 
 function SkeletonPost() {
   return (
-    <div className="bg-[#13161f] border border-[#1e2029] rounded-2xl p-5 animate-pulse">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-9 h-9 rounded-xl bg-[#1e2029] shrink-0" />
-        <div className="space-y-2 flex-1">
-          <div className="h-2.5 bg-[#1e2029] rounded w-1/4" />
-          <div className="h-2 bg-[#1e2029] rounded w-1/6" />
+    <div className="bg-[#13161f] border border-[#1e2029] rounded-2xl overflow-hidden animate-pulse">
+      <div className="h-48 bg-[#1e2029]" />
+      <div className="p-5">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-9 h-9 rounded-xl bg-[#1e2029] shrink-0" />
+          <div className="space-y-2 flex-1">
+            <div className="h-2.5 bg-[#1e2029] rounded w-1/4" />
+            <div className="h-2 bg-[#1e2029] rounded w-1/6" />
+          </div>
         </div>
-      </div>
-      <div className="space-y-2.5">
-        <div className="h-2.5 bg-[#1e2029] rounded w-full" />
-        <div className="h-2.5 bg-[#1e2029] rounded w-5/6" />
-        <div className="h-2.5 bg-[#1e2029] rounded w-4/6" />
+        <div className="space-y-2.5">
+          <div className="h-2.5 bg-[#1e2029] rounded w-full" />
+          <div className="h-2.5 bg-[#1e2029] rounded w-5/6" />
+        </div>
       </div>
     </div>
   );
 }
 
-// ─── POST CARD (real likes + comments, persisted) ────────────────────────────
+// ─── POST CARD ────────────────────────────────────────────────────────────────
 function PostCard({ post: initialPost, animate, userEmail, userName }) {
-  const [post, setPost]                 = useState(initialPost);
-  const [liked, setLiked]               = useState(
+  const [post, setPost]                     = useState(initialPost);
+  const [liked, setLiked]                   = useState(
     () => initialPost.likedBy?.includes(userEmail) ?? false
   );
-  const [showComments, setShowComments] = useState(false);
-  const [commentText, setCommentText]   = useState("");
+  const [showComments, setShowComments]     = useState(false);
+  const [commentText, setCommentText]       = useState("");
   const [commentPosting, setCommentPosting] = useState(false);
   const [commentError, setCommentError]     = useState("");
-  const [visible, setVisible]           = useState(false);
+  const [lightbox, setLightbox]             = useState(false);
+  const [visible, setVisible]               = useState(false);
   const ref = useRef(null);
 
   useEffect(() => {
@@ -157,7 +162,6 @@ function PostCard({ post: initialPost, animate, userEmail, userName }) {
     return () => obs.disconnect();
   }, []);
 
-  // ── Like — saves to DB, syncs real count back
   async function handleLike() {
     const wasLiked = liked;
     setLiked(!wasLiked);
@@ -173,13 +177,11 @@ function PostCard({ post: initialPost, animate, userEmail, userName }) {
       setPost((p) => ({ ...p, likes: data.likes, likedBy: data.likedBy }));
       setLiked(data.likedBy.includes(userEmail));
     } catch {
-      // revert on failure
       setLiked(wasLiked);
       setPost((p) => ({ ...p, likes: wasLiked ? p.likes + 1 : p.likes - 1 }));
     }
   }
 
-  // ── Comment — saves to DB
   async function handleComment() {
     const text = commentText.trim();
     if (!text) return;
@@ -207,160 +209,223 @@ function PostCard({ post: initialPost, animate, userEmail, userName }) {
   const comments = post.comments || [];
 
   return (
-    <div
-      ref={ref}
-      style={{
-        opacity:    animate ? (visible ? 1 : 0) : 1,
-        transform:  animate ? (visible ? "translateY(0)" : "translateY(20px)") : "none",
-        transition: "opacity 0.45s ease, transform 0.45s ease",
-      }}
-      className="bg-[#13161f] border border-[#1e2029] rounded-2xl p-5
-                 hover:border-[#2a3060] hover:bg-[#14172a] transition-colors"
-    >
-      {/* header */}
-      <div className="flex items-start justify-between gap-3 mb-1">
-        <div className="flex items-center gap-3">
-          <div className={`w-9 h-9 rounded-xl border flex items-center justify-center
-                          text-[13px] font-bold shrink-0 ${colorCls}`}>
-            {initial}
-          </div>
-          <div>
-            <p className="text-[14px] font-semibold text-[#ebedf5] leading-none">{post.userName}</p>
-            <p className="text-[10.5px] text-[#3f4357] mt-0.5">
-              <TimeAgo date={post.createdAt} />
-              <span className="mx-1.5 opacity-30">·</span>
-              <span className="text-[#2e3244]">{post.userEmail}</span>
-            </p>
-          </div>
-        </div>
-        <span className="text-[10px] px-2 py-0.5 rounded-full shrink-0 mt-0.5
-                         bg-[#1d2b5c]/60 text-[#8ba4f5] border border-[#2a3a7a]/50">
-          Post
-        </span>
-      </div>
-
-      {/* body */}
-      <p className="text-[14px] text-[#9094a8] leading-relaxed whitespace-pre-wrap break-words mt-4">
-        {post.userContent}
-      </p>
-
-      {/* footer */}
-      <div className="flex items-center gap-5 mt-4 pt-3 border-t border-[#191b24]">
-        {/* Like */}
-        <button onClick={handleLike}
-          className={`flex items-center gap-1.5 text-[12px] transition-all
-            ${liked ? "text-[#8ba4f5]" : "text-[#3a4470] hover:text-[#8ba4f5]"}`}>
-          <svg width="14" height="14" viewBox="0 0 24 24"
-               fill={liked ? "currentColor" : "none"}
-               stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-          </svg>
-          {post.likes}
-        </button>
-
-        {/* Reply toggle */}
-        <button
-          onClick={() => setShowComments((v) => !v)}
-          className={`flex items-center gap-1.5 text-[12px] transition-colors
-            ${showComments ? "text-[#8ba4f5]" : "text-[#3a4470] hover:text-[#8ba4f5]"}`}>
-          <Icon size={14}>
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-          </Icon>
-          {comments.length > 0 ? comments.length : "Reply"}
-        </button>
-
-        {/* Share */}
-        <button className="flex items-center gap-1.5 text-[12px] text-[#3a4470] hover:text-[#8ba4f5] transition-colors ml-auto">
-          <Icon size={14}>
-            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-          </Icon>
-          Share
-        </button>
-      </div>
-
-      {/* ── Comments ── */}
-      {showComments && (
-        <div className="mt-4 pt-4 border-t border-[#191b24] space-y-3">
-          {comments.length === 0 && (
-            <p className="text-[11.5px] text-[#2e3244] text-center py-1">
-              No replies yet. Be the first!
-            </p>
-          )}
-
-          {comments.map((c) => (
-            <div key={c._id} className="flex gap-2.5">
-              <div className={`w-7 h-7 rounded-xl border flex items-center justify-center
-                               text-[11px] font-bold shrink-0 mt-0.5 ${getColor(c.userName || "")}`}>
-                {c.userName?.charAt(0).toUpperCase()}
+    <>
+      <div
+        ref={ref}
+        style={{
+          opacity:    animate ? (visible ? 1 : 0) : 1,
+          transform:  animate ? (visible ? "translateY(0)" : "translateY(20px)") : "none",
+          transition: "opacity 0.45s ease, transform 0.45s ease",
+        }}
+        className="bg-[#13161f] border border-[#1e2029] rounded-2xl overflow-hidden
+                   hover:border-[#2a3060] transition-colors"
+      >
+        {/* ══ IMAGE — rendered first, full bleed, before all text ══ */}
+        {post.image && (
+          <div
+            className="w-full cursor-zoom-in overflow-hidden relative group"
+            onClick={() => setLightbox(true)}
+          >
+            <img
+              src={post.image}
+              alt={post.imageName || "post image"}
+              loading="lazy"
+              className="w-full max-h-[460px] object-cover block"
+              onError={(e) => { e.target.style.display = "none"; }}
+            />
+            {/* zoom hint */}
+            <div className="absolute inset-0 flex items-center justify-center
+                            opacity-0 group-hover:opacity-100 transition-opacity bg-black/10">
+              <div className="w-9 h-9 rounded-full bg-black/50 border border-white/20
+                              flex items-center justify-center text-white">
+                <Icon size={14}>
+                  <polyline points="15 3 21 3 21 9"/>
+                  <polyline points="9 21 3 21 3 15"/>
+                  <line x1="21" y1="3" x2="14" y2="10"/>
+                  <line x1="3" y1="21" x2="10" y2="14"/>
+                </Icon>
               </div>
-              <div className="flex-1 bg-[#0d0f14] border border-[#1e2029] rounded-xl px-3.5 py-2.5">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[12px] font-semibold text-[#c8cad4]">{c.userName}</span>
-                  <span className="text-[10px] text-[#2e3244]"><TimeAgo date={c.createdAt} /></span>
-                </div>
-                <p className="text-[12.5px] text-[#7a7f96] leading-relaxed whitespace-pre-wrap">
-                  {c.text}
+            </div>
+          </div>
+        )}
+
+        <div className="p-5">
+          {/* header */}
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div className="flex items-center gap-3">
+              <div className={`w-9 h-9 rounded-xl border flex items-center justify-center
+                              text-[13px] font-bold shrink-0 ${colorCls}`}>
+                {initial}
+              </div>
+              <div>
+                <p className="text-[14px] font-semibold text-[#ebedf5] leading-none font-mono">
+                  @{post.userName}
+                </p>
+                <p className="text-[10.5px] text-[#3f4357] mt-0.5">
+                  <TimeAgo date={post.createdAt} />
+                  <span className="mx-1.5 opacity-30">·</span>
+                  <span className="text-[#2e3244]">{post.userEmail}</span>
                 </p>
               </div>
             </div>
-          ))}
+            <span className="text-[10px] px-2 py-0.5 rounded-full shrink-0 mt-0.5
+                             bg-[#1d2b5c]/60 text-[#8ba4f5] border border-[#2a3a7a]/50">
+              {post.image && !post.userContent ? "Photo" : "Post"}
+            </span>
+          </div>
 
-          {/* Comment input */}
-          <div className="flex gap-2.5 items-start pt-1">
-            <div className={`w-7 h-7 rounded-xl border flex items-center justify-center
-                             text-[11px] font-bold shrink-0 mt-0.5 ${getColor(userName || "")}`}>
-              {userName?.charAt(0).toUpperCase()}
-            </div>
-            <div className="flex-1">
-              <textarea
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleComment();
-                  }
-                }}
-                placeholder="Write a reply… (Enter to post)"
-                rows={2}
-                maxLength={300}
-                className="w-full bg-[#0d0f14] border border-[#1e2029] rounded-xl
-                           px-3.5 py-2.5 text-[12.5px] text-[#c8cad4]
-                           placeholder-[#2e3244] resize-none
-                           focus:outline-none focus:border-[#2a3a7a] transition-colors"
-              />
-              {commentError && (
-                <p className="text-[11px] text-red-400 mt-1">{commentError}</p>
+          {/* ══ TEXT — only rendered if it exists ══ */}
+          {post.userContent && post.userContent.trim() !== "" && (
+            <p className="text-[14px] text-[#9094a8] leading-relaxed
+                          whitespace-pre-wrap break-words mb-3">
+              {post.userContent}
+            </p>
+          )}
+
+          {/* footer */}
+          <div className="flex items-center gap-5 pt-3 border-t border-[#191b24]">
+            <button onClick={handleLike}
+              className={`flex items-center gap-1.5 text-[12px] transition-all
+                ${liked ? "text-[#8ba4f5]" : "text-[#3a4470] hover:text-[#8ba4f5]"}`}>
+              <svg width="14" height="14" viewBox="0 0 24 24"
+                   fill={liked ? "currentColor" : "none"}
+                   stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+              {post.likes}
+            </button>
+
+            <button
+              onClick={() => setShowComments((v) => !v)}
+              className={`flex items-center gap-1.5 text-[12px] transition-colors
+                ${showComments ? "text-[#8ba4f5]" : "text-[#3a4470] hover:text-[#8ba4f5]"}`}>
+              <Icon size={14}>
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </Icon>
+              {comments.length > 0 ? comments.length : "Reply"}
+            </button>
+
+            <button className="flex items-center gap-1.5 text-[12px] text-[#3a4470]
+                               hover:text-[#8ba4f5] transition-colors ml-auto">
+              <Icon size={14}>
+                <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+              </Icon>
+              Share
+            </button>
+          </div>
+
+          {/* comments */}
+          {showComments && (
+            <div className="mt-4 pt-4 border-t border-[#191b24] space-y-3">
+              {comments.length === 0 && (
+                <p className="text-[11.5px] text-[#2e3244] text-center py-1">
+                  No replies yet. Be the first!
+                </p>
               )}
-              <div className="flex items-center justify-between mt-1.5">
-                <span className="text-[10px] text-[#2e3244]">{commentText.length}/300</span>
-                <button
-                  onClick={handleComment}
-                  disabled={commentPosting || !commentText.trim()}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11.5px]
-                             font-medium bg-[#1d2b5c] border border-[#2a3a7a] text-[#8ba4f5]
-                             hover:bg-[#22336e] transition-colors
-                             disabled:opacity-40 disabled:cursor-not-allowed">
-                  {commentPosting
-                    ? <svg className="animate-spin" width="11" height="11" viewBox="0 0 24 24"
-                           fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                      </svg>
-                    : <Icon size={11}>
-                        <line x1="22" y1="2" x2="11" y2="13"/>
-                        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                      </Icon>
-                  }
-                  Reply
-                </button>
+              {comments.map((c) => (
+                <div key={c._id} className="flex gap-2.5">
+                  <div className={`w-7 h-7 rounded-xl border flex items-center justify-center
+                                   text-[11px] font-bold shrink-0 mt-0.5 ${getColor(c.userName || "")}`}>
+                    {c.userName?.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 bg-[#0d0f14] border border-[#1e2029] rounded-xl px-3.5 py-2.5">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[12px] font-semibold text-[#c8cad4] font-mono">
+                        @{c.userName}
+                      </span>
+                      <span className="text-[10px] text-[#2e3244]">
+                        <TimeAgo date={c.createdAt} />
+                      </span>
+                    </div>
+                    <p className="text-[12.5px] text-[#7a7f96] leading-relaxed whitespace-pre-wrap">
+                      {c.text}
+                    </p>
+                  </div>
+                </div>
+              ))}
+
+              <div className="flex gap-2.5 items-start pt-1">
+                <div className={`w-7 h-7 rounded-xl border flex items-center justify-center
+                                 text-[11px] font-bold shrink-0 mt-0.5 ${getColor(userName || "")}`}>
+                  {userName?.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1">
+                  <textarea
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault(); handleComment();
+                      }
+                    }}
+                    placeholder="Write a reply… (Enter to post)"
+                    rows={2}
+                    maxLength={300}
+                    className="w-full bg-[#0d0f14] border border-[#1e2029] rounded-xl
+                               px-3.5 py-2.5 text-[12.5px] text-[#c8cad4]
+                               placeholder-[#2e3244] resize-none
+                               focus:outline-none focus:border-[#2a3a7a] transition-colors"
+                  />
+                  {commentError && (
+                    <p className="text-[11px] text-red-400 mt-1">{commentError}</p>
+                  )}
+                  <div className="flex items-center justify-between mt-1.5">
+                    <span className="text-[10px] text-[#2e3244]">{commentText.length}/300</span>
+                    <button
+                      onClick={handleComment}
+                      disabled={commentPosting || !commentText.trim()}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11.5px]
+                                 font-medium bg-[#1d2b5c] border border-[#2a3a7a] text-[#8ba4f5]
+                                 hover:bg-[#22336e] transition-colors
+                                 disabled:opacity-40 disabled:cursor-not-allowed">
+                      {commentPosting
+                        ? <svg className="animate-spin" width="11" height="11" viewBox="0 0 24 24"
+                               fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                          </svg>
+                        : <Icon size={11}>
+                            <line x1="22" y1="2" x2="11" y2="13"/>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                          </Icon>
+                      }
+                      Reply
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          )}
+        </div>
+      </div>
+
+      {/* ══ LIGHTBOX ══ */}
+      {lightbox && post.image && (
+        <div
+          className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-sm
+                     flex items-center justify-center p-4"
+          onClick={() => setLightbox(false)}
+        >
+          <button
+            onClick={() => setLightbox(false)}
+            className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/10
+                       border border-white/20 flex items-center justify-center
+                       text-white hover:bg-white/20 transition-colors z-10">
+            <Icon size={15}>
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </Icon>
+          </button>
+          <img
+            src={post.image}
+            alt={post.imageName || "post"}
+            className="max-w-full max-h-[90vh] object-contain rounded-xl"
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -383,15 +448,18 @@ export default function Feed() {
   const [posting, setPosting]         = useState(false);
   const [postError, setPostError]     = useState("");
 
-  const sentinelRef = useRef(null);
+  // ── image state
+  const [imageData, setImageData]       = useState(null);
+  const [imageName, setImageName]       = useState("");
+  const [imagePreview, setImagePreview] = useState(null);
+  const fileInputRef                    = useRef(null);
+  const sentinelRef                     = useRef(null);
 
-  // pull from session — passed down to PostCard
   const userEmail = session?.user?.email;
-  const userName  = session?.user?.name;
+  const userName  = session?.user?.username || session?.user?.name;
 
   useEffect(() => { setTimeout(() => setMounted(true), 60); }, []);
 
-  // wait for session so likedBy seeding works correctly
   useEffect(() => {
     if (!userEmail) return;
     fetch("/api/community/post")
@@ -428,20 +496,42 @@ export default function Feed() {
     }, 600);
   }, [page, allPosts, hasMore, loadingMore]);
 
+  function handleImageSelect(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024) { setPostError("Image must be under 4 MB."); return; }
+    setImageName(file.name);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setImageData(ev.target.result);
+      setImagePreview(ev.target.result);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removeImage() {
+    setImageData(null); setImageName(""); setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function closeModal() {
+    setNewPostOpen(false); setContent(""); setPostError(""); removeImage();
+  }
+
   async function handlePost() {
-    if (!content.trim()) return setPostError("Write something first.");
+    if (!content.trim() && !imageData) return setPostError("Write something or add an image.");
     setPosting(true); setPostError("");
     try {
       const res  = await fetch("/api/community/post", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userContent: content }),
+        body: JSON.stringify({ userContent: content, image: imageData, imageName }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
       setAllPosts((prev) => [data.post, ...prev]);
       setPosts((prev)    => [data.post, ...prev]);
-      setContent(""); setNewPostOpen(false);
+      closeModal();
     } catch (e) { setPostError(e.message); }
     finally { setPosting(false); }
   }
@@ -450,7 +540,6 @@ export default function Feed() {
 
   return (
     <div className="flex min-h-screen bg-[#0b0f1a] text-[#e2e4ec]">
-
       <Sidebar expanded={expanded} onToggle={() => setExpanded(v => !v)}
                active="feed" mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
 
@@ -459,7 +548,6 @@ export default function Feed() {
         <div className="fixed bottom-0 left-[30%] w-[400px] h-[400px] bg-purple-600 opacity-[0.04] blur-[120px] rounded-full pointer-events-none" />
         <div className="fixed inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
 
-        {/* mobile bar */}
         <div className="sticky top-0 z-20 flex items-center gap-3 px-4 py-3
                         bg-[#0b0f1a]/80 backdrop-blur border-b border-[#1e2029] md:hidden">
           <button onClick={() => setMobileOpen(true)}
@@ -474,7 +562,6 @@ export default function Feed() {
           <span className="text-[13px] font-medium text-[#8ba4f5]">Feed</span>
         </div>
 
-        {/* sticky header */}
         <div className="sticky top-0 z-10 hidden md:flex items-center justify-between
                         px-6 py-3 bg-[#0b0f1a]/80 backdrop-blur border-b border-[#1e2029]">
           <div className="flex items-center gap-2">
@@ -500,10 +587,8 @@ export default function Feed() {
           </button>
         </div>
 
-        {/* feed */}
         <div className={`relative z-10 max-w-[680px] mx-auto px-4 sm:px-6 py-8 ${fadeIn}`}>
 
-          {/* compose bar */}
           {session && (
             <div onClick={() => setNewPostOpen(true)}
               className="bg-[#13161f] border border-[#1e2029] rounded-2xl p-4 mb-6
@@ -513,16 +598,26 @@ export default function Feed() {
                   ? <img src={session.user.image} alt="av"
                          className="w-9 h-9 rounded-full border border-[#2a2e3e] object-cover shrink-0"/>
                   : <div className={`w-9 h-9 rounded-xl border flex items-center justify-center
-                                     text-[13px] font-bold shrink-0 ${getColor(session.user?.name || "")}`}>
-                      {session.user?.name?.charAt(0).toUpperCase()}
+                                     text-[13px] font-bold shrink-0 ${getColor(session.user?.username || session.user?.name || "")}`}>
+                      {(session.user?.username || session.user?.name)?.charAt(0).toUpperCase()}
                     </div>
                 }
                 <p className="text-[13.5px] text-[#3f4357] group-hover:text-[#5a5f72] transition-colors flex-1">
-                  What's on your mind, {session.user?.name?.split(" ")[0]}?
+                  What's on your mind, @{session.user?.username || session.user?.name?.split(" ")[0]}?
                 </p>
-                <div className="w-7 h-7 rounded-lg bg-[#1d2b5c] border border-[#2a3a7a]
-                                flex items-center justify-center text-[#8ba4f5] shrink-0">
-                  <Icon size={12}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></Icon>
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="w-7 h-7 rounded-lg bg-[#13161f] border border-[#1e2029]
+                                  flex items-center justify-center text-[#3a4470]">
+                    <Icon size={12}>
+                      <rect x="3" y="3" width="18" height="18" rx="2"/>
+                      <circle cx="8.5" cy="8.5" r="1.5"/>
+                      <polyline points="21 15 16 10 5 21"/>
+                    </Icon>
+                  </div>
+                  <div className="w-7 h-7 rounded-lg bg-[#1d2b5c] border border-[#2a3a7a]
+                                  flex items-center justify-center text-[#8ba4f5]">
+                    <Icon size={12}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></Icon>
+                  </div>
                 </div>
               </div>
             </div>
@@ -580,7 +675,7 @@ export default function Feed() {
         </div>
       </div>
 
-      {/* CREATE POST MODAL */}
+      {/* ══ CREATE POST MODAL ══ */}
       {newPostOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
           <div className="w-full max-w-lg bg-[#13161f] border border-[#1e2029] rounded-2xl p-6 shadow-2xl">
@@ -589,13 +684,15 @@ export default function Feed() {
                 <p className="text-[15px] font-semibold text-[#ebedf5]">New Post</p>
                 <p className="text-[11px] text-[#3f4357] mt-0.5">Share something with the community</p>
               </div>
-              <button onClick={() => { setNewPostOpen(false); setContent(""); setPostError(""); }}
+              <button onClick={closeModal}
                 className="w-7 h-7 flex items-center justify-center rounded-md border border-[#1e2029]
                            text-[#3a3d4a] hover:bg-[#161820] hover:text-[#e05a5a] transition-colors">
                 <Icon size={12}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></Icon>
               </button>
             </div>
-            <div className="border-t border-[#1e2029] mb-5" />
+
+            <div className="border-t border-[#1e2029] mb-4" />
+
             {session && (
               <div className="flex items-center gap-3 mb-4 px-3 py-2.5 rounded-xl bg-[#0d0f14] border border-[#1e2029]">
                 {session.user?.image
@@ -607,7 +704,9 @@ export default function Feed() {
                     </div>
                 }
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-medium text-[#c8cad4] truncate">{session.user?.name}</p>
+                  <p className="text-[13px] font-medium text-[#c8cad4] truncate font-mono">
+                    @{session.user?.username || session.user?.name}
+                  </p>
                   <p className="text-[10px] text-[#2e3244] truncate">{session.user?.email}</p>
                 </div>
                 <span className="flex items-center gap-1 text-[10px] text-emerald-400 shrink-0">
@@ -616,30 +715,81 @@ export default function Feed() {
                 </span>
               </div>
             )}
+
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="What's on your mind?"
+              placeholder="What's on your mind? (optional if adding image)"
               maxLength={500}
-              rows={5}
+              rows={3}
               autoFocus
               className="w-full bg-[#0d0f14] border border-[#1e2029] rounded-xl px-4 py-3
                          text-[14px] text-[#c8cad4] placeholder-[#2e3244] resize-none
-                         focus:outline-none focus:border-[#2a3a7a] transition-colors"
+                         focus:outline-none focus:border-[#2a3a7a] transition-colors mb-3"
             />
-            <div className="flex items-center justify-between mt-2 mb-5">
-              {postError ? <p className="text-[11px] text-red-400">{postError}</p> : <span />}
+
+            {/* hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/gif,image/webp"
+              onChange={handleImageSelect}
+              className="hidden"
+            />
+
+            {/* image preview or browse */}
+            {imagePreview ? (
+              <div className="relative rounded-xl overflow-hidden border border-[#1e2029] mb-4">
+                <img src={imagePreview} alt="preview"
+                     className="w-full max-h-[220px] object-cover block" />
+                <button onClick={removeImage}
+                  className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70
+                             border border-white/20 flex items-center justify-center
+                             text-white hover:bg-red-500/80 transition-colors">
+                  <Icon size={12}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></Icon>
+                </button>
+                <div className="px-3 py-1.5 bg-[#0d0f14]/90 border-t border-[#1e2029]">
+                  <p className="text-[10.5px] text-[#3f4357] truncate">{imageName}</p>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl mb-4
+                           border border-dashed border-[#1e2029] text-[12.5px] text-[#3a4470]
+                           hover:border-[#2a3a7a] hover:text-[#8ba4f5] hover:bg-[#0d0f14]
+                           transition-all">
+                <Icon size={15}>
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </Icon>
+                Browse &amp; add image
+                <span className="text-[10.5px] text-[#2e3244]">PNG, JPG, GIF, WebP · max 4 MB</span>
+              </button>
+            )}
+
+            <div className="flex items-center justify-between mb-5">
+              {postError
+                ? <p className="text-[11px] text-red-400 bg-red-500/10 border border-red-500/20
+                                rounded-xl px-3 py-1.5 flex-1 mr-3">{postError}</p>
+                : <span />
+              }
               <p className={`text-[10.5px] ml-auto ${content.length > 450 ? "text-amber-400" : "text-[#2e3244]"}`}>
                 {content.length}/500
               </p>
             </div>
+
             <div className="flex gap-2">
-              <button onClick={() => { setNewPostOpen(false); setContent(""); setPostError(""); }}
+              <button onClick={closeModal}
                 className="flex-1 py-2.5 rounded-lg text-[13px] font-medium border border-[#1e2029]
                            text-[#4a4f62] hover:bg-[#161820] hover:text-[#8ba4f5] transition-colors">
                 Cancel
               </button>
-              <button onClick={handlePost} disabled={posting || !content.trim()}
+              <button
+                onClick={handlePost}
+                disabled={posting || (!content.trim() && !imageData)}
                 className="flex-1 py-2.5 rounded-lg text-[13px] font-medium
                            bg-[#1d2b5c] border border-[#2a3a7a] text-[#8ba4f5]
                            hover:bg-[#22336e] transition-colors
