@@ -1,5 +1,6 @@
 'use client'
 
+// client component!!
 export default function Loading() {
   return (
     // loading page!!
