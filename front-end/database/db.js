@@ -1,5 +1,5 @@
 import mongoose from "mongoose"
-// make sure mongoose is install !!
+// make sure mongoose is install !
 
 export const connectDB = async() => {
     if (mongoose.connection.readyState === 1) {
