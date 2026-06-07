@@ -6,6 +6,7 @@ import Main_Explore from "../Components/ExploreRoute/Main-Explore"
 //   title: "Dev Collab | Explore"
 // };
 
+// will updgrade, ts feature
 // doesnt work rn
 export default function Explore() {
     return (
