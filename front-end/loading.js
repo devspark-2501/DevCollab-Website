@@ -6,6 +6,7 @@ export default function Loading() {
     // loading page!
     <div className="min-h-screen flex items-center justify-center bg-[#0b0f1a] relative overflow-hidden">
 
+    
       <div className="absolute w-[400px] h-[400px] bg-purple-600 opacity-20 blur-[120px] rounded-full top-[-100px] left-[-100px]" />
       <div className="absolute w-[400px] h-[400px] bg-blue-500 opacity-20 blur-[120px] rounded-full bottom-[-100px] right-[-100px]" />
 
