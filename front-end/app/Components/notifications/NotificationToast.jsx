@@ -20,6 +20,7 @@ const Icon = ({ size = 14, children }) => (
   </svg>
 );
 
+
 export default function NotificationToast() {
   const { data: session }     = useSession();
   const [toasts, setToasts]   = useState([]);
